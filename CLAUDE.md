@@ -106,7 +106,11 @@ let _pinCb;          // Pending PIN-protected callback
 
 ### PIN Authentication Pattern
 
-Write operations are PIN-protected. `pinThen(fn)` shows the PIN modal and calls `fn()` on success. To add a new PIN-protected action, wrap it: `pinThen(() => yourAction())`.
+**Edit, delete, approve, and restore** operations are PIN-protected. `pinThen(fn)` shows the PIN modal and calls `fn()` on success. To add a new PIN-protected action, wrap it: `pinThen(() => yourAction())`.
+
+**Not PIN-protected (open to anyone):** Add new alumni/faculty/event (`openAddModal`, `openAddFacultyModal`, `openEventModal` and their save functions), save display settings (`saveSettings`), backup/export downloads, and self-registration submission.
+
+**Change Admin PIN** uses its own modal (`openChgPin` / `doChgPin`) that requires entering the current PIN directly — it does not use `pinThen()`.
 
 ### Modal Pattern
 
