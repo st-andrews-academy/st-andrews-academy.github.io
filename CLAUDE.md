@@ -13,7 +13,7 @@ St. Andrews Academy Alumni Portal — a single-file SPA for the Batch 1986 alumn
 
 No build step. Open `index.html` directly in a browser, or deploy to GitHub Pages by uploading the file to the `st-andrews-academy/st-andrews-academy.github.io` repository (goes live in ~2-5 minutes).
 
-There are no package managers, bundlers, linters, or test frameworks.
+Firestore requires an origin allowed in Firebase; running from `file://` may fail CORS — use a local HTTP server (e.g. `python -m http.server`) or just open from GitHub Pages. There are no package managers, bundlers, linters, or test frameworks.
 
 ## Architecture
 
@@ -38,11 +38,27 @@ All HTML, CSS (in `<style>`), and JavaScript (in `<script>`) are in `index.html`
 
 **Alumni DB page:** shares the same stats bar HTML as Overview (`#dbStats`), populated by the same `statsHtml` variable in `initOverview()`.
 
-### Data Layer (localStorage)
+### Data Layer
 
-All data persists client-side only — there is no server or backend.
+**Primary store: Firestore.** On load, `loadFromFirestore()` fetches all data from Firestore and syncs it into localStorage as a cache. If Firestore is unreachable, the app falls back to localStorage (or seed data on first visit). All writes go to both localStorage and Firestore in parallel — Firestore failures are non-fatal (`console.warn` only).
 
-| localStorage key | Contents |
+Firebase SDK v10.12.0 compat is loaded via two CDN `<script>` tags (lines 173–174). The global `fstore` variable holds the Firestore instance.
+
+**Firestore collections / documents:**
+
+| Path | Contents |
+|---|---|
+| `portal/alumni` | `{ records: [...] }` — full alumni array |
+| `portal/faculty` | `{ records: [...] }` — full faculty array |
+| `portal/config` | `{ adminPin: "..." }` — admin PIN |
+| `portal/pending` | `{ records: [...] }` — pending registrations |
+| `events/{evId}` | Individual event doc; `evId` is `Date.now().toString()` |
+
+Events are stored as individual Firestore documents (not in a single array doc) and carry an `_id` field matching their document ID. `saveEvents()` only writes to localStorage; Firestore writes for events are done explicitly at creation (`fstore.collection('events').doc(evId).set(ev)`) and deletion (`fstore.collection('events').doc(ev._id).delete()`).
+
+**localStorage keys (cache / fallback):**
+
+| Key | Contents |
 |---|---|
 | `saa_alumni` | Alumni records array |
 | `saa_faculty` | Faculty records array |
@@ -51,7 +67,7 @@ All data persists client-side only — there is no server or backend.
 | `saa_pending_reg` | Pending registrations array |
 | `saa_admin_pin` | Custom PIN (falls back to default if absent) |
 
-On first load, `saa_alumni` and `saa_faculty` are populated from the embedded `ALUMNI_SEED` and `FAC_SEED` arrays. Changes are saved via `saveDB()`, `saveFacDB()`, and `saveEvents()`.
+On first load, if Firestore has no data, `ALUMNI_SEED` and `FAC_SEED` are written to both Firestore and localStorage. Existing users see Firestore data on every load, so seed changes in the file are **ignored** for existing users unless Firestore data is cleared.
 
 ### Core Data Shapes
 
@@ -134,3 +150,6 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `toast(msg)` | Show a brief notification |
 | `dl(name, content, type)` | Trigger a file download |
 | `genCode(batch, sec)` | Auto-generate student code |
+| `loadFromFirestore()` | Fetch all data from Firestore on startup; falls back to localStorage |
+| `savePending(p)` | Save pending registrations to localStorage + Firestore |
+| `compressImage(file, maxW, quality)` | Client-side canvas compress before storing photo as base64 (default 1200px, 0.72 quality) |
