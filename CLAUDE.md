@@ -54,7 +54,7 @@ Firebase SDK v10.12.0 compat is loaded via two CDN `<script>` tags (lines 173–
 | `portal/pending` | `{ records: [...] }` — pending registrations |
 | `events/{evId}` | Individual event doc; `evId` is `Date.now().toString()` |
 
-Events are stored as individual Firestore documents (not in a single array doc) and carry an `_id` field matching their document ID. `saveEvents()` only writes to localStorage; Firestore writes for events are done explicitly at creation (`fstore.collection('events').doc(evId).set(ev)`) and deletion (`fstore.collection('events').doc(ev._id).delete()`).
+Events are stored as individual Firestore documents (not in a single array doc) and carry an `_id` field matching their document ID. `saveEvents()` only writes to localStorage; Firestore writes for events are done explicitly at creation (`fstore.collection('events').doc(evId).set(ev)`), edit (`fstore.collection('events').doc(ev._id).set(ev)`), and deletion (`fstore.collection('events').doc(ev._id).delete()`).
 
 **localStorage keys (cache / fallback):**
 
@@ -102,13 +102,24 @@ let sortCol, sortDir;     // Alumni table sort state
 let facSortCol, facSortDir;
 let currentPage;     // Alumni table pagination
 let _pinCb;          // Pending PIN-protected callback
+let editEventIdx;    // -1 = add mode, ≥0 = edit mode for event modal
+let pendingPhotos;   // File[] accumulated across multiple file-picker opens
+let existingPhotoUrls; // base64[] of photos already saved (edit mode only)
 ```
 
 ### PIN Authentication Pattern
 
-**Edit, delete, approve, and restore** operations are PIN-protected. `pinThen(fn)` shows the PIN modal and calls `fn()` on success. To add a new PIN-protected action, wrap it: `pinThen(() => yourAction())`.
+`pinThen(fn)` shows the PIN modal and calls `fn()` on success. To add a new PIN-protected action, wrap it: `pinThen(() => yourAction())`.
 
-**Not PIN-protected (open to anyone):** Add new alumni/faculty/event (`openAddModal`, `openAddFacultyModal`, `openEventModal` and their save functions), save display settings (`saveSettings`), backup/export downloads, and self-registration submission.
+**PIN required — Admin only:**
+- **Add** alumni/faculty/event — form opens freely; PIN is required on the **Save** button (`saveStudentWithPin` / `saveFacultyWithPin` / `pinThen(()=>saveEvent())`). This routes through `pinThen` only when `editIdx < 0` (add mode).
+- **Edit** alumni/faculty — PIN required **before** opening the edit modal (`editStudentPin` / `editFacultyPin` → `pinThen`). No second PIN on Save.
+- **Edit event** — `openEditEventModal(i)` opens freely; PIN on Save (same Save button as Add event).
+- **Delete** alumni / faculty / event — `deleteStudentPin` / `deleteFacultyPin` / `deleteEventPin` → `pinThen`.
+- **Approve / Reject** pending registration — `pinThen(()=>approvePending(i))` / `pinThen(()=>rejectPending(i))`.
+- **Restore** alumni or faculty JSON backup — `pinThen(restoreData)` / `pinThen(restoreFaculty)`.
+
+**Not PIN-protected (open to anyone):** Opening Add modals, save display settings (`saveSettings`), backup/export downloads, self-registration submission.
 
 **Change Admin PIN** uses its own modal (`openChgPin` / `doChgPin`) that requires entering the current PIN directly — it does not use `pinThen()`.
 
@@ -144,11 +155,19 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `renderTable()` | Rebuild alumni table with current filters/sort/page |
 | `getFiltered()` | Returns filtered+sorted alumni array |
 | `sortTable(col)` | Toggle sort on column |
-| `openAddModal()` / `saveStudent()` | Add alumni |
-| `editStudent(idx)` / `deleteStudent(idx)` | Edit/delete alumni |
+| `renderTable()` | Rebuild alumni table with current filters/sort/page |
+| `getFiltered()` | Returns filtered+sorted alumni array |
+| `sortTable(col)` | Toggle sort on column |
+| `openAddModal()` / `saveStudentWithPin()` | Add alumni (PIN on save) |
+| `editStudentPin(idx)` / `editStudent(idx)` | Edit alumni (PIN before opening) |
+| `deleteStudentPin(idx)` / `deleteStudent(idx)` | Delete alumni (PIN-protected) |
 | `renderFaculty()` | Rebuild faculty table |
 | `showBatch(year)` / `showClass(year, sec)` | Graduation tab navigation |
-| `renderEvents()` / `saveEvent()` | Memory Lane list + add |
+| `renderEvents()` | Memory Lane list render |
+| `openEventModal()` / `openEditEventModal(i)` | Open add / edit event modal |
+| `saveEvent()` | Save new or edited event (called via `pinThen`) |
+| `appendPhotos(input)` | Accumulate file picks into `pendingPhotos[]` |
+| `updatePhotoPreview()` | Render photo thumbnails with ✕ remove buttons |
 | `backupData()` / `restoreData()` | JSON backup/restore |
 | `exportCSV()` | Download alumni as CSV |
 | `toast(msg)` | Show a brief notification |
