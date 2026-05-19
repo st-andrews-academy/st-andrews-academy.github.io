@@ -132,6 +132,8 @@ let _pinCb;          // Pending PIN-protected callback
 let editEventIdx;    // -1 = add mode, ≥0 = edit mode for event modal
 let pendingPhotos;   // File[] accumulated across multiple file-picker opens
 let existingPhotoUrls; // base64[] of photos already saved (edit mode only)
+let _pendingObjectUrls; // object URLs created for photo thumbnails — revoked on each redraw and on modal close
+let _toastTimer;     // clearTimeout handle so rapid toasts don't race
 ```
 
 ### PIN Authentication Pattern
@@ -179,9 +181,6 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 
 | Function | Purpose |
 |---|---|
-| `renderTable()` | Rebuild alumni table with current filters/sort/page |
-| `getFiltered()` | Returns filtered+sorted alumni array |
-| `sortTable(col)` | Toggle sort on column |
 | `renderTable()` | Rebuild alumni table with current filters/sort/page |
 | `getFiltered()` | Returns filtered+sorted alumni array |
 | `sortTable(col)` | Toggle sort on column |
