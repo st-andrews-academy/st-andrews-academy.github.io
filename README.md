@@ -55,19 +55,17 @@ Protected actions: Add, Edit, Delete, Restore, Import, Approve/Reject registrati
 
 ## 💾 Data Storage & Backup
 
-> ⚠️ This portal is hosted as a **static site** on GitHub Pages. There is no server-side database.
+This portal uses **Firebase Firestore** as its live database, with browser localStorage as a fallback cache. All changes made by any user are saved to Firestore in real time and visible to all other users on their next page load.
 
 | Storage | How it works |
 |---------|-------------|
-| **Browser localStorage** | All edits save here automatically |
-| **JSON Backup** | Download via Settings or Alumni DB — keeps all data |
+| **Firestore (primary)** | All edits sync to the cloud automatically — shared across all users |
+| **Browser localStorage** | Local cache; used as fallback if Firestore is unreachable |
+| **JSON Backup** | Download via Settings or Alumni DB — full offline snapshot |
 | **CSV Export** | Excel-compatible export of alumni records |
 | **Memory Lane Backup** | Downloads all events and photos as JSON |
 
-**Recommended workflow for the portal coordinator:**
-1. Make data updates in the browser
-2. Download a JSON backup via Settings
-3. Re-upload `index.html` periodically with updated seed data for all users to see
+> **Note:** Because data lives in Firestore, editing on one device is immediately reflected for everyone. You no longer need to re-upload `index.html` to share data changes — only re-upload when you need to update the app itself (new features, seed data for fresh installs, etc.).
 
 ---
 
