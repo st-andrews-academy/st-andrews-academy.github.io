@@ -102,7 +102,18 @@ To update the default dataset visible to all users on first load (or after clear
 
 ### Embedded Images
 
-`BATCH_CLASS_PHOTOS` maps section letter → base64 PNG (class portraits). `HIST_PHOTOS` is an array of base64 JPEGs for the History tab. Adding or replacing images means replacing the base64 string directly in the file, which will further increase file size.
+`BATCH_CLASS_PHOTOS` maps section letter → base64 PNG (class portraits). `HIST_IMGS` is a key→base64 map for history photos; `HIST_PHOTOS` is the ordered metadata array (`{key, cap}`) that controls what is displayed and labeled in the gallery. To relabel a photo edit its `cap`; to hide one remove its entry from `HIST_PHOTOS` (leave `HIST_IMGS` intact to avoid corrupting adjacent base64 data). Adding or replacing images means replacing the base64 string directly in the file, which will further increase file size.
+
+**Current History gallery (16 photos, keys h001–h017, h009 removed as duplicate):**
+
+| Key | Caption |
+|---|---|
+| h001 | SAA School Seal - circa 1980s |
+| h002 | Historical Photo - circa 1910 |
+| h003–h005 | School Building |
+| h006–h008 | Faculty Members |
+| h010–h016 | Class Photo |
+| h017 | School ID - circa 1980s |
 
 ## Key Functions Reference
 
