@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-St. Andrews Academy Alumni Portal — a single-file SPA for the Batch 1986 alumni of St. Andrews Academy. All logic, styles, seed data, and embedded images live in one file: **`index.html`** (~4.8 MB, ~1,677 lines).
+St. Andrews Academy Alumni Portal — a single-file SPA for the Batch 1986 alumni of St. Andrews Academy. All logic, styles, seed data, and embedded images live in one file: **`index.html`**.
 
 **Live site:** https://st-andrews-academy.github.io  
 **Admin PIN default:** `aneza654457`
@@ -24,6 +24,11 @@ All HTML, CSS (in `<style>`), and JavaScript (in `<script>`) are in `index.html`
 ### Navigation & Tabs
 
 `showPage(id, btn)` controls which of the 7 tabs is visible: Overview, History, Graduation, Alumni DB, Faculty, Memory Lane, Settings. Each tab has an `init*()` function called on `DOMContentLoaded`.
+
+**Dashboard-specific reunion sections:**
+- **Memory Lane** — stat bar (`#mlReunionStats`) shows 2026 Reunion Grand Total (₱225,200) and Contributors (98), rendered once by `renderEvents()`
+- **Faculty** — "2026 Reunion — Teacher Attendance" card (`#facReunionList`) lists attending/absent teachers, rendered by `initFaculty()`
+- These sections do not appear on any other dashboard
 
 ### Data Layer (localStorage)
 
