@@ -33,6 +33,15 @@ rm -rf package.json package-lock.json node_modules my_test.mjs  # clean up
 - After cancelling the PIN modal, the parent modal is still open — close it separately.
 - The admin PIN for testing is `aneza654457` (default); read it from `ADMIN_PIN_DEFAULT` in the source.
 
+**Live URLs under test:**
+
+| Target | URL |
+|---|---|
+| Alumni Portal | `https://st-andrews-academy.github.io` |
+| Architecture Diagram | `https://st-andrews-academy.github.io/SAA_Architecture_Diagram.html` |
+
+**Architecture diagram specifics:** The diagram draws SVG arrows via JavaScript on load — add `page.waitForTimeout(1000)` after page load before asserting arrow counts. Key assertions: 8 boxes visible (`#b-dev` through `#b-mob2`), ≥8 `path.arrow-line` elements in the SVG, all PIN access control items present and matching the app's actual behaviour.
+
 ## Architecture
 
 ### Single-File Structure
