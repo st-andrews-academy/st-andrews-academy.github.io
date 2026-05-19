@@ -28,7 +28,7 @@
 
   /* ── DIAGRAM CANVAS ── */
   .canvas {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     position: relative;
   }
@@ -89,6 +89,11 @@
   .box-pages .label { color: #7a4e00; }
   .box-pages .tag { background: #ffe082; color: #7a4e00; }
 
+  .box-firebase { background: #fff3e0; border: 2px solid #f57c00; }
+  .box-firebase .label { color: #bf360c; }
+  .box-firebase .sublabel { color: #7a3a00; }
+  .box-firebase .tag { background: #ffe0b2; color: #bf360c; }
+
   .box-device { background: #e8f5e9; border: 2px solid #43a047; }
   .box-device .label { color: #1b5e20; }
   .box-device .tag { background: #c8e6c9; color: #1b5e20; }
@@ -113,6 +118,7 @@
   .cl-blue   { stroke: #4a80d4; }
   .cl-dark   { stroke: #555; }
   .cl-yellow { stroke: #d4a017; }
+  .cl-orange { stroke: #f57c00; }
   .cl-purple { stroke: #8e24aa; }
   .cl-green  { stroke: #2e7d32; }
   .cl-dashed { stroke-dasharray: 7 4; }
@@ -126,7 +132,7 @@
 
   /* ── FLOW LEGEND ── */
   .legend {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 48px auto 0;
     background: #fff;
     border-radius: 14px;
@@ -162,7 +168,7 @@
 
   /* ── SEQUENCE SECTION ── */
   .sequence {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 24px auto 0;
     background: #fff;
     border-radius: 14px;
@@ -196,12 +202,13 @@
   .bg-blue   { background: #dbeafe; color: #1e3a8a; }
   .bg-dark   { background: #e5e7eb; color: #111; }
   .bg-yellow { background: #fef9c3; color: #7a4e00; }
+  .bg-orange { background: #ffe0b2; color: #bf360c; }
   .bg-purple { background: #ede7f6; color: #4a148c; }
   .bg-green  { background: #dcfce7; color: #14532d; }
 
   /* ── KEY FACTS ── */
   .facts {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 24px auto 0;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -216,6 +223,7 @@
   }
   .fact.blue   { border-color: #4a80d4; }
   .fact.yellow { border-color: #f0b429; }
+  .fact.orange { border-color: #f57c00; }
   .fact.purple { border-color: #8e24aa; }
   .fact.green  { border-color: #43a047; }
   .fact .fact-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 4px; }
@@ -224,7 +232,7 @@
 
   /* ── COMPARISON ── */
   .comparison {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 40px auto 0;
     background: #fff;
     border-radius: 14px;
@@ -334,14 +342,14 @@
 <body>
 
 <h1>St. Andrews Academy Alumni Portal — System Architecture</h1>
-<p class="subtitle">How GitHub Pages, localStorage, and User Devices work together &nbsp;·&nbsp; Batch 1986</p>
+<p class="subtitle">How GitHub Pages, Firebase Firestore, and User Devices work together &nbsp;·&nbsp; Batch 1986</p>
 
 <!-- ══════════════════════════════════════════════
      DIAGRAM
      ══════════════════════════════════════════════ -->
 <div class="canvas" id="canvas">
 
-  <!-- ROW 1: Developer + GitHub + GitHub Pages -->
+  <!-- ROW 1: Developer + GitHub + GitHub Pages + Firebase -->
   <div class="row" id="row1" style="margin-bottom: 0;">
 
     <div class="box box-dev" id="b-dev">
@@ -365,12 +373,19 @@
       <span class="tag">Static Hosting</span>
     </div>
 
+    <div class="box box-firebase" id="b-firebase">
+      <span class="icon">🔥</span>
+      <div class="label">Firebase Firestore</div>
+      <div class="sublabel">Cloud database — alumni, faculty,<br>events, PIN, pending regs</div>
+      <span class="tag">Primary Database</span>
+    </div>
+
   </div>
 
   <!-- SPACER FOR ARROWS -->
   <div style="height: 100px;"></div>
 
-  <!-- ROW 2: User Devices + localStorage -->
+  <!-- ROW 2: User Devices + localStorage cache -->
   <div class="row" id="row2">
 
     <div class="box box-device" id="b-desk">
@@ -384,11 +399,10 @@
       <span class="icon">🗄️</span>
       <div class="label">Browser localStorage</div>
       <div class="sublabel">
-        <code>saa_alumni</code> &nbsp;·&nbsp; <code>saa_faculty</code><br>
-        <code>saa_events</code> &nbsp;·&nbsp; <code>saa_settings</code><br>
-        <code>saa_pending_reg</code> &nbsp;·&nbsp; <code>saa_admin_pin</code>
+        Local cache of Firestore data.<br>
+        Also used as fallback if<br>Firestore is unreachable.
       </div>
-      <span class="tag">This Browser Only</span>
+      <span class="tag">Cache / Fallback</span>
     </div>
 
     <div class="box box-device" id="b-mob1">
@@ -418,6 +432,9 @@
       </marker>
       <marker id="arr-yellow" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto">
         <polygon points="0 0, 9 3.5, 0 7" fill="#d4a017"/>
+      </marker>
+      <marker id="arr-orange" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 9 3.5, 0 7" fill="#f57c00"/>
       </marker>
       <marker id="arr-purple" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto">
         <polygon points="0 0, 9 3.5, 0 7" fill="#8e24aa"/>
@@ -463,26 +480,26 @@
     </div>
 
     <div class="flow-item">
-      <div class="flow-num bg-purple">④</div>
+      <div class="flow-num bg-orange">④</div>
       <div class="flow-text">
-        <strong>Browser → localStorage &nbsp;(read on startup)</strong>
-        On first load, the app seeds alumni and faculty from the built-in <code>ALUMNI_SEED</code> / <code>FAC_SEED</code> arrays into localStorage. On every subsequent load it reads existing data directly from localStorage.
+        <strong>Firestore → Browser &nbsp;(read on startup)</strong>
+        On every page load, <code>loadFromFirestore()</code> fetches alumni, faculty, events, config, and pending registrations from Firestore. This is the <strong>live shared data</strong> — the same data every user sees. If Firestore is unreachable, the browser falls back to its localStorage cache.
       </div>
     </div>
 
     <div class="flow-item">
-      <div class="flow-num bg-purple">⑤</div>
+      <div class="flow-num bg-orange">⑤</div>
       <div class="flow-text">
-        <strong>Browser → localStorage &nbsp;(write on every change)</strong>
-        When a user adds, edits, or deletes alumni, faculty, events, or settings, the data is written to localStorage immediately via <code>saveDB()</code>, <code>saveFacDB()</code>, or <code>saveEvents()</code>. Changes are instant — no network round-trip.
+        <strong>Browser → Firestore &nbsp;(write on every change)</strong>
+        When a user adds, edits, or deletes records, the change is written to Firestore via <code>saveDB()</code>, <code>saveFacDB()</code>, <code>savePending()</code>, or individual event writes. Firestore failures are non-fatal — a <code>console.warn</code> is logged and the local change still persists.
       </div>
     </div>
 
     <div class="flow-item">
-      <div class="flow-num bg-green">⑥</div>
+      <div class="flow-num bg-purple">⑥</div>
       <div class="flow-text">
-        <strong>Cross-device sharing &nbsp;(JSON backup / restore)</strong>
-        Because localStorage is per-browser, sharing data between devices is done manually. There are <strong>two separate backup streams</strong> — alumni backups (<code>backupData()</code>) cover alumni records, events, and settings but <em>not</em> faculty; faculty has its own separate <code>backupFaculty()</code> / <code>restoreFaculty()</code>. Additional granular backups: <code>backupMemoryLane()</code> and <code>backupSettings()</code>. No automatic sync.
+        <strong>Browser ↔ localStorage &nbsp;(cache)</strong>
+        All Firestore reads are mirrored to localStorage as a local cache. All writes also go to localStorage in parallel with Firestore. If Firestore is down, the app reads the last known state from this cache instead of the seed data.
       </div>
     </div>
 
@@ -505,20 +522,24 @@
         <div class="step-text">Browser downloads <code>index.html</code> from GitHub Pages CDN (includes all CSS, JS, and embedded images)</div>
       </div>
       <div class="step">
-        <div class="step-dot bg-yellow">2</div>
-        <div class="step-text">JavaScript runs — reads alumni, faculty, events, and settings from localStorage</div>
+        <div class="step-dot bg-orange">2</div>
+        <div class="step-text"><code>loadFromFirestore()</code> runs — fetches alumni, faculty, events, config, and pending registrations from Firestore in parallel</div>
       </div>
       <div class="step">
-        <div class="step-dot bg-purple">3</div>
-        <div class="step-text"><strong>First load only:</strong> if <code>saa_alumni</code> is empty, seeds data from <code>ALUMNI_SEED</code> and <code>FAC_SEED</code> arrays embedded in the file</div>
+        <div class="step-dot bg-orange">3</div>
+        <div class="step-text"><strong>First-ever install only:</strong> if Firestore has no data, seeds it from <code>ALUMNI_SEED</code> / <code>FAC_SEED</code> and saves to Firestore for all future users</div>
       </div>
       <div class="step">
-        <div class="step-dot bg-green">4</div>
-        <div class="step-text"><strong>Portal fully loads</strong> — all tabs, filters, and tables render from the localStorage data</div>
+        <div class="step-dot bg-purple">4</div>
+        <div class="step-text">Firestore data is mirrored into localStorage as a local cache</div>
       </div>
       <div class="step">
         <div class="step-dot bg-green">5</div>
-        <div class="step-text">Works completely offline after first load — no network connection required</div>
+        <div class="step-text"><strong>Portal fully loads</strong> — all tabs, filters, and tables render. Loading overlay is hidden.</div>
+      </div>
+      <div class="step">
+        <div class="step-dot bg-dark">6</div>
+        <div class="step-text"><strong>Firestore offline:</strong> falls back to localStorage cache. If cache is also empty, seeds from <code>ALUMNI_SEED</code>.</div>
       </div>
     </div>
 
@@ -531,19 +552,19 @@
       </div>
       <div class="step">
         <div class="step-dot bg-green">2</div>
-        <div class="step-text">PIN modal confirms identity for protected actions (add, edit, delete, approve, restore, change PIN, save settings)</div>
+        <div class="step-text">PIN modal confirms identity for protected actions (edit, delete, approve, restore, change PIN)</div>
       </div>
       <div class="step">
         <div class="step-dot bg-purple">3</div>
-        <div class="step-text"><code>saveDB()</code> / <code>saveFacDB()</code> / <code>saveEvents()</code> write the updated array to localStorage instantly</div>
+        <div class="step-text"><code>saveDB()</code> / <code>saveFacDB()</code> / <code>savePending()</code> write the updated array to localStorage instantly</div>
       </div>
       <div class="step">
-        <div class="step-dot bg-green">4</div>
-        <div class="step-text">Toast notification: "Saved!" — user continues without any delay</div>
+        <div class="step-dot bg-orange">4</div>
+        <div class="step-text">Same functions fire a Firestore write in parallel — change becomes visible to all users on their next page load</div>
       </div>
       <div class="step">
-        <div class="step-dot bg-dark">5</div>
-        <div class="step-text"><strong>Note:</strong> Change is visible only in this browser. Use Backup / Restore to share with other devices.</div>
+        <div class="step-dot bg-green">5</div>
+        <div class="step-text">Toast notification: "Saved!" — user sees no delay. Firestore failure is logged silently, local change is preserved.</div>
       </div>
     </div>
 
@@ -567,12 +588,12 @@
         <div class="step-text">~2–5 minutes later, new version is live globally</div>
       </div>
       <div class="step">
-        <div class="step-dot bg-purple">5</div>
-        <div class="step-text">localStorage data is untouched — all alumni records survive the update. Seed data changes only affect users who clear their storage.</div>
+        <div class="step-dot bg-orange">5</div>
+        <div class="step-text">Firestore data is untouched — all alumni records, events, and faculty survive the update. Seed data changes only affect a brand-new Firestore instance.</div>
       </div>
       <div class="step">
         <div class="step-dot bg-green">6</div>
-        <div class="step-text">Users refresh their browser to get the new app version</div>
+        <div class="step-text">Users refresh their browser to get the new app version, and Firestore loads their existing data as normal</div>
       </div>
     </div>
 
@@ -594,15 +615,20 @@
     <div class="fact-value">GitHub Pages</div>
     <div class="fact-sub">Free · global CDN · HTTPS · no server to manage</div>
   </div>
-  <div class="fact purple">
+  <div class="fact orange">
     <div class="fact-label">Database</div>
+    <div class="fact-value">Firebase Firestore</div>
+    <div class="fact-sub">Cloud database · shared across all users · localStorage as fallback cache</div>
+  </div>
+  <div class="fact purple">
+    <div class="fact-label">Local Cache</div>
     <div class="fact-value">Browser localStorage</div>
-    <div class="fact-sub">Built into every browser · no signup · instant reads/writes</div>
+    <div class="fact-sub">Mirrors Firestore data · used as offline fallback</div>
   </div>
   <div class="fact green">
     <div class="fact-label">Monthly Cost</div>
     <div class="fact-value">₱0</div>
-    <div class="fact-sub">Entirely free — no servers, no database subscriptions</div>
+    <div class="fact-sub">GitHub Pages + Firebase free tier — no custom server</div>
   </div>
 </div>
 
@@ -631,13 +657,14 @@ window.addEventListener('load', () => {
   svg.setAttribute('viewBox', `0 0 ${canvas.offsetWidth} ${canvas.offsetHeight}`);
   svg.style.height = canvas.offsetHeight + 'px';
 
-  const dev   = rel(document.getElementById('b-dev'));
-  const gh    = rel(document.getElementById('b-gh'));
-  const pages = rel(document.getElementById('b-pages'));
-  const store = rel(document.getElementById('b-store'));
-  const desk  = rel(document.getElementById('b-desk'));
-  const mob1  = rel(document.getElementById('b-mob1'));
-  const mob2  = rel(document.getElementById('b-mob2'));
+  const dev      = rel(document.getElementById('b-dev'));
+  const gh       = rel(document.getElementById('b-gh'));
+  const pages    = rel(document.getElementById('b-pages'));
+  const firebase = rel(document.getElementById('b-firebase'));
+  const store    = rel(document.getElementById('b-store'));
+  const desk     = rel(document.getElementById('b-desk'));
+  const mob1     = rel(document.getElementById('b-mob1'));
+  const mob2     = rel(document.getElementById('b-mob2'));
 
   function arrow(x1,y1,x2,y2,cls,marker,label,labelX,labelY){
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
@@ -696,90 +723,98 @@ window.addEventListener('load', () => {
     'cl-yellow cl-dashed', 'arr-yellow', '', 0, 0);
 
   // ③ Pages → Admin Mobile (dashed)
-  curve(pages.right, pages.cy+10, pages.right+30, pages.bottom+20, mob2.cx, mob2.top-40, mob2.cx, mob2.top-9,
+  curve(pages.right, pages.cy+10, pages.right+10, pages.bottom+20, mob2.cx, mob2.top-40, mob2.cx, mob2.top-9,
     'cl-yellow cl-dashed', 'arr-yellow', '', 0, 0);
 
-  // ④ Desktop ↔ localStorage (read)
+  // ④ Firebase → Desktop (read on load)
+  curve(firebase.cx, firebase.bottom, firebase.cx, firebase.bottom+30, desk.cx+30, desk.top-30, desk.cx+30, desk.top-9,
+    'cl-orange', 'arr-orange', '④ read on load', firebase.cx - 60, firebase.bottom + 55);
+
+  // ⑤ Desktop → Firebase (write on save, dashed)
+  curve(desk.cx-30, desk.top-9, desk.cx-30, desk.top-30, firebase.cx-20, firebase.bottom+30, firebase.cx-20, firebase.bottom,
+    'cl-orange cl-dashed', 'arr-orange', '⑤ write on save', firebase.cx - 110, firebase.bottom + 30);
+
+  // ⑥ Desktop ↔ localStorage (cache read)
   curve(desk.right, desk.cy-10, desk.right+30, desk.cy-10, store.left-30, store.cy-10, store.left-9, store.cy-10,
-    'cl-purple', 'arr-purple', '④ read on load', (desk.right+store.left)/2, desk.cy - 22);
+    'cl-purple', 'arr-purple', '⑥ cache', (desk.right+store.left)/2, desk.cy - 22);
 
-  // ⑤ localStorage → Desktop (write)
+  // localStorage → Desktop (fallback read, dashed)
   curve(store.left-9, store.cy+10, store.left-30, store.cy+10, desk.right+30, desk.cy+10, desk.right, desk.cy+10,
-    'cl-purple cl-dashed', 'arr-purple', '⑤ write on save', (desk.right+store.left)/2, store.cy + 26);
-
-  // Mobile → localStorage
-  curve(mob1.left, mob1.cy, mob1.left-20, mob1.cy, store.right+20, store.cy+20, store.right+9, store.cy+20,
-    'cl-purple', 'arr-purple', '', 0, 0);
-
-  // Admin Mobile → localStorage
-  curve(mob2.left, mob2.cy, mob2.left-30, mob2.top+20, store.right+10, store.bottom-10, store.right+9, store.bottom-10,
     'cl-purple cl-dashed', 'arr-purple', '', 0, 0);
+
+  // Firebase → Mobile (dashed)
+  curve(firebase.right, firebase.cy, firebase.right+20, firebase.cy, mob1.cx+20, mob1.top-30, mob1.cx+20, mob1.top-9,
+    'cl-orange cl-dashed', 'arr-orange', '', 0, 0);
+
+  // Firebase → Admin Mobile (dashed)
+  curve(firebase.right, firebase.bottom, firebase.right+30, firebase.bottom+20, mob2.cx+10, mob2.top-30, mob2.cx+10, mob2.top-9,
+    'cl-orange cl-dashed', 'arr-orange', '', 0, 0);
 });
 </script>
 
 
 <!-- ══════════════════════════════════════════════
-     LOCALSTORAGE DATA STRUCTURE
+     DATA STRUCTURE
      ══════════════════════════════════════════════ -->
 <div class="sequence" style="margin-top:24px;">
-  <h2>localStorage Data Structure</h2>
+  <h2>Data Structure — Firestore Collections &amp; localStorage Cache</h2>
   <table class="ctable" style="margin-top:4px;">
     <thead>
       <tr>
-        <th>Key</th>
-        <th>Type</th>
-        <th>What's stored</th>
+        <th>Data</th>
+        <th>Firestore Path</th>
+        <th>localStorage Key (cache)</th>
         <th>Written by</th>
         <th>Notes</th>
       </tr>
     </thead>
     <tbody>
       <tr>
+        <td>Alumni records</td>
+        <td><code>portal/alumni</code> → <code>{records:[…]}</code></td>
         <td><code>saa_alumni</code></td>
-        <td>JSON array</td>
-        <td>Full alumni records (321+ entries)</td>
         <td><code>saveDB()</code></td>
-        <td>Seeded from <code>ALUMNI_SEED</code> on first load</td>
+        <td>321+ entries. Seeded from <code>ALUMNI_SEED</code> on first-ever install only.</td>
       </tr>
       <tr>
+        <td>Faculty records</td>
+        <td><code>portal/faculty</code> → <code>{records:[…]}</code></td>
         <td><code>saa_faculty</code></td>
-        <td>JSON array</td>
-        <td>Faculty records (15 entries)</td>
         <td><code>saveFacDB()</code></td>
-        <td>Seeded from <code>FAC_SEED</code> on first load. Backed up/restored separately via <code>backupFaculty()</code> / <code>restoreFaculty()</code> — NOT included in the main alumni backup.</td>
+        <td>15 entries. Backed up/restored separately — NOT included in the main alumni backup.</td>
       </tr>
       <tr>
+        <td>Memory Lane events</td>
+        <td><code>events/{evId}</code> — one doc per event</td>
         <td><code>saa_events</code></td>
-        <td>JSON array</td>
-        <td>Memory Lane events — title, date, desc, photos[ ], created</td>
-        <td><code>saveEvents()</code></td>
-        <td>Photos stored as base64 data URIs inside the array</td>
+        <td>Individual <code>fstore.collection('events').doc(evId).set(ev)</code> on create; <code>.delete()</code> on remove. <code>saveEvents()</code> only writes to localStorage.</td>
+        <td>Event docs carry an <code>_id</code> field matching their Firestore doc ID (<code>Date.now().toString()</code>). Photos stored as base64 inside the doc.</td>
       </tr>
       <tr>
-        <td><code>saa_settings</code></td>
-        <td>JSON object</td>
-        <td><code>{ fontSize }</code></td>
-        <td><code>saveSettings()</code></td>
-        <td>—</td>
-      </tr>
-      <tr>
-        <td><code>saa_pending_reg</code></td>
-        <td>JSON array</td>
-        <td>Pending alumni self-registration requests</td>
-        <td>Registration form / approve / reject</td>
-        <td>Cleared when approved or rejected</td>
-      </tr>
-      <tr>
+        <td>Admin PIN</td>
+        <td><code>portal/config</code> → <code>{adminPin:"…"}</code></td>
         <td><code>saa_admin_pin</code></td>
-        <td>String</td>
-        <td>Custom admin PIN (plain text)</td>
         <td><code>doChgPin()</code></td>
-        <td>Falls back to default <code>aneza654457</code> if absent</td>
+        <td>Falls back to default <code>aneza654457</code> if absent in both stores.</td>
+      </tr>
+      <tr>
+        <td>Pending registrations</td>
+        <td><code>portal/pending</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_reg</code></td>
+        <td><code>savePending()</code></td>
+        <td>Cleared when approved or rejected.</td>
+      </tr>
+      <tr>
+        <td>Display settings</td>
+        <td>Not synced to Firestore</td>
+        <td><code>saa_settings</code> → <code>{fontSize}</code></td>
+        <td><code>saveSettings()</code></td>
+        <td>Device-local preference only.</td>
       </tr>
     </tbody>
   </table>
-  <div style="margin-top:14px;padding:12px 16px;background:#fff8e1;border-left:4px solid #f0b429;border-radius:8px;font-size:0.82rem;color:#5a3e00;line-height:1.6;">
-    <strong>Important:</strong> localStorage is scoped to the browser and device. Data edited on one device is not visible on another unless you use <strong>Backup JSON → Restore JSON</strong> to transfer it manually. This is by design — no server, no account system, no data breach risk.
+  <div style="margin-top:14px;padding:12px 16px;background:#fff3e0;border-left:4px solid #f57c00;border-radius:8px;font-size:0.82rem;color:#bf360c;line-height:1.6;">
+    <strong>Important:</strong> Firestore is the single source of truth. Changes on one device are reflected for all users on their next page load. localStorage is a cache — it is refreshed from Firestore every time the page loads. JSON backup/restore files are now secondary (useful for offline recovery or migrating data).
   </div>
 </div>
 
@@ -789,7 +824,7 @@ window.addEventListener('load', () => {
      ══════════════════════════════════════════════ -->
 <div class="sequence" style="margin-top:24px;">
   <h2>PIN Access Control — Who Can Do What</h2>
-  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">The Admin PIN gates all write operations. Browsing and exporting are open to anyone. The PIN prevents accidental or malicious changes when an admin leaves the portal open on a shared device.</p>
+  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">The Admin PIN gates edit, delete, approve, and restore operations. Adding records and saving settings are open to anyone — no PIN required. The PIN prevents accidental or malicious changes to existing data when an admin leaves the portal open on a shared device.</p>
 
   <div style="display:flex;gap:20px;flex-wrap:wrap;">
 
@@ -800,22 +835,22 @@ window.addEventListener('load', () => {
         <div class="comp-row"><span class="comp-icon">📥</span><span>Export alumni to CSV / Excel</span></div>
         <div class="comp-row"><span class="comp-icon">💾</span><span>Backup databases to JSON</span></div>
         <div class="comp-row"><span class="comp-icon">📝</span><span>Submit alumni self-registration request</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Alumni record</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Faculty member</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Memory Lane Event (with photos)</span></div>
+        <div class="comp-row"><span class="comp-icon">💾</span><span>Save display settings (font size)</span></div>
       </div>
     </div>
 
     <div style="flex:1;min-width:280px;">
       <div style="background:#fff5f5;border:2px solid #e53935;border-radius:12px;padding:18px 20px;">
         <h3 style="font-size:0.82rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#b71c1c;margin-bottom:14px;">PIN required — Admin only</h3>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Alumni record</span></div>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Faculty member</span></div>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Memory Lane Event (with photos)</span></div>
         <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Alumni record</span></div>
         <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Faculty record</span></div>
         <div class="comp-row"><span class="comp-icon">🗑️</span><span>Delete Alumni / Faculty / Event</span></div>
         <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending registration</span></div>
         <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Alumni JSON backup — overwrites alumni, events, settings (not faculty)</span></div>
         <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Faculty JSON backup — overwrites faculty records only</span></div>
-        <div class="comp-row"><span class="comp-icon">💾</span><span>Save display settings (font size)</span></div>
         <div class="comp-row"><span class="comp-icon">🔑</span><span>Change Admin PIN</span></div>
       </div>
     </div>
@@ -823,39 +858,39 @@ window.addEventListener('load', () => {
   </div>
 
   <div style="margin-top:14px;padding:12px 16px;background:#e8f0fe;border-left:4px solid #4a80d4;border-radius:8px;font-size:0.82rem;color:#1a3a8a;line-height:1.6;">
-    <strong>How the PIN works:</strong> The PIN is stored in <code>saa_admin_pin</code> in localStorage (falls back to default <code>aneza654457</code> if not set). When a PIN-protected action is triggered, a modal appears asking for the PIN. On success, the action proceeds. There is no account system — the PIN is shared among all admins on the same device.<br><br>
+    <strong>How the PIN works:</strong> The PIN is stored in <code>saa_admin_pin</code> in localStorage and synced to <code>portal/config</code> in Firestore. On startup, the Firestore PIN overwrites the local one. Falls back to default <code>aneza654457</code> if absent in both. When a PIN-protected action is triggered, a modal appears asking for the PIN. On success, the action proceeds and is written to both Firestore and localStorage.<br><br>
     <strong>Backup vs Restore:</strong> Downloading backups never requires the PIN (read-only). Restoring is PIN-protected because it overwrites stored data. Alumni restore (<code>restoreData()</code>) and Faculty restore (<code>restoreFaculty()</code>) are independent — each only overwrites its own dataset.
   </div>
 </div>
 
 
 <!-- ══════════════════════════════════════════════
-     WHY LOCALSTORAGE IS ENOUGH HERE
+     WHY FIREBASE (NOT RAILWAY) IS ENOUGH HERE
      ══════════════════════════════════════════════ -->
 <div class="comparison">
-  <h2>Why localStorage is enough here — but NOT for CapulongFarms Online Orders</h2>
-  <p class="intro">localStorage works when data is local, trusted, and private to one device. Online Orders involve money, external services, and untrusted customers — that requires a real backend server (Railway).</p>
+  <h2>Architecture Comparison — SAA Alumni Portal vs CapulongFarms Online Orders</h2>
+  <p class="intro">The Alumni Portal uses Firebase Firestore (Google-managed, no custom server). CapulongFarms Online Orders requires a Railway server because of payment processing, secret keys, and untrusted customers.</p>
 
   <div class="comp-cols">
 
     <div class="comp-col good">
-      <h3>✅ localStorage is enough — St. Andrews Alumni Portal</h3>
+      <h3>✅ Firebase is enough — St. Andrews Alumni Portal</h3>
       <div class="comp-row"><span class="comp-icon">👥</span><span>Data is managed by <strong>trusted admins</strong> — alumni can't manipulate records</span></div>
       <div class="comp-row"><span class="comp-icon">🔓</span><span>Everyone is allowed to <strong>see everything</strong> — no private data per user</span></div>
       <div class="comp-row"><span class="comp-icon">💸</span><span><strong>No money involved</strong> — no payment keys, no financial transactions</span></div>
       <div class="comp-row"><span class="comp-icon">📭</span><span><strong>No webhooks needed</strong> — no external service calls back to the app</span></div>
       <div class="comp-row"><span class="comp-icon">🧮</span><span><strong>Simple logic</strong> — add, edit, delete records. Nothing to compute server-side.</span></div>
-      <div class="comp-row"><span class="comp-icon">📦</span><span>Cross-device sharing is <strong>manual and intentional</strong> — backup / restore JSON</span></div>
+      <div class="comp-row"><span class="comp-icon">🔄</span><span><strong>Firestore handles cross-device sync</strong> — changes on one device are immediately visible to all others</span></div>
     </div>
 
     <div class="comp-col bad">
-      <h3>❌ localStorage alone is not enough — CapulongFarms Online Orders</h3>
+      <h3>❌ Firebase alone is not enough — CapulongFarms Online Orders</h3>
       <div class="comp-row"><span class="comp-icon">🔑</span><span><strong>PayMongo secret key</strong> must be hidden on a server — putting it in the browser exposes it to anyone who opens DevTools</span></div>
-      <div class="comp-row"><span class="comp-icon">📡</span><span><strong>PayMongo sends webhooks</strong> (payment confirmations) to a server URL — localStorage has no URL to receive them</span></div>
+      <div class="comp-row"><span class="comp-icon">📡</span><span><strong>PayMongo sends webhooks</strong> (payment confirmations) to a server URL — Firebase has no URL to receive them securely</span></div>
       <div class="comp-row"><span class="comp-icon">📦</span><span><strong>Inventory must be validated server-side</strong> — if 10 people buy the last item, only a server can decide who gets it</span></div>
       <div class="comp-row"><span class="comp-icon">🧾</span><span><strong>Customers must not edit their own orders</strong> — price, quantity, payment status must be locked by a trusted server</span></div>
       <div class="comp-row"><span class="comp-icon">🧮</span><span><strong>Business logic is complex</strong> — discounts, tax, shipping, order status transitions need server-side rules</span></div>
-      <div class="comp-row"><span class="comp-icon">📧</span><span><strong>Email/SMS notifications</strong> on order events require a running server process, not a browser</span></div>
+      <div class="comp-row"><span class="comp-icon">📧</span><span><strong>Email/SMS notifications</strong> on order events require a running server process</span></div>
     </div>
 
   </div>
@@ -887,8 +922,8 @@ window.addEventListener('load', () => {
       </tr>
       <tr>
         <td>Who writes data?</td>
-        <td class="yes">Trusted admins only</td>
-        <td class="no">Untrusted customers — must be validated</td>
+        <td class="yes">Trusted admins only (PIN-protected)</td>
+        <td class="no">Untrusted customers — must be validated server-side</td>
       </tr>
       <tr>
         <td>Can users see each other's data?</td>
@@ -902,7 +937,7 @@ window.addEventListener('load', () => {
       </tr>
       <tr>
         <td>Cross-device sync needed?</td>
-        <td class="yes">No — manual backup/restore is fine</td>
+        <td class="yes">Yes — Firestore handles it automatically</td>
         <td class="no">Yes — every customer must see live order status</td>
       </tr>
       <tr>
@@ -911,13 +946,13 @@ window.addEventListener('load', () => {
         <td class="no">Yes — pricing, tax, stock, order states</td>
       </tr>
       <tr>
-        <td>Backend server needed?</td>
-        <td class="yes">✅ No — GitHub Pages + localStorage</td>
+        <td>Custom backend server needed?</td>
+        <td class="yes">✅ No — GitHub Pages + Firebase (Google-managed)</td>
         <td class="no">❌ Yes — Railway server is required</td>
       </tr>
       <tr>
         <td>Monthly cost</td>
-        <td class="yes">₱0 — entirely free</td>
+        <td class="yes">₱0 — GitHub Pages + Firebase free tier</td>
         <td class="note">Railway + database hosting (paid, but necessary)</td>
       </tr>
     </tbody>
@@ -926,25 +961,27 @@ window.addEventListener('load', () => {
   <!-- VERDICT -->
   <div class="verdict">
     <strong>Bottom line</strong>
-    The St. Andrews Alumni Portal stores everything in the browser's own localStorage — no server, no database subscription, no monthly cost. This works perfectly because the data is managed by trusted admins, nothing is secret, and manual backup/restore is sufficient for cross-device sharing. For CapulongFarms Online Orders, Railway is not optional: it is the security wall between customers and your money, your inventory, and PayMongo.
+    The St. Andrews Alumni Portal uses Firebase Firestore as its live database — changes are shared across all devices automatically at no cost. No custom server is needed because there are no secret keys to protect, no payments to process, and data is managed only by trusted admins. For CapulongFarms Online Orders, Railway is not optional: it is the security wall between customers and your money, your inventory, and PayMongo.
   </div>
 
   <!-- ARCH SIDE BY SIDE -->
   <div class="arch-compare">
 
     <div class="arch-box saa">
-      <h4>St. Andrews — No-server Architecture (localStorage)</h4>
+      <h4>St. Andrews — Firebase Architecture (no custom server)</h4>
       <div class="arch-layer layer-blue">🖥️ &nbsp;Developer edits index.html</div>
       <span class="arrow-down">↓ git push</span>
       <div class="arch-layer layer-yellow">🐙 &nbsp;GitHub → GitHub Pages (serves HTML)</div>
       <span class="arrow-down">↓ page loads in browser</span>
-      <div class="arch-layer layer-green">🌐 &nbsp;Browser (all logic runs here)</div>
-      <span class="arrow-down">↓ reads &amp; writes instantly</span>
-      <div class="arch-layer layer-purple">🗄️ &nbsp;localStorage (built into every browser)</div>
+      <div class="arch-layer layer-green">🌐 &nbsp;Browser (all app logic runs here)</div>
+      <span class="arrow-down">↓ reads &amp; writes on every action</span>
+      <div class="arch-layer layer-orange">🔥 &nbsp;Firebase Firestore (Google-managed cloud DB)</div>
+      <span class="arrow-down">↓ mirrored locally as cache</span>
+      <div class="arch-layer layer-purple">🗄️ &nbsp;localStorage (fallback cache, device-local)</div>
     </div>
 
     <div class="arch-box farm">
-      <h4>CapulongFarms — Railway Architecture (server required)</h4>
+      <h4>CapulongFarms — Railway Architecture (custom server required)</h4>
       <div class="arch-layer layer-blue">🌐 &nbsp;Customer Browser (Cloudflare Pages)</div>
       <span class="arrow-down">↓ API request (place order, check stock)</span>
       <div class="arch-layer layer-red">⚙️ &nbsp;Railway Server (Node.js — holds secret keys, validates orders, enforces inventory)</div>
@@ -959,7 +996,7 @@ window.addEventListener('load', () => {
   </div>
 </div>
 
-<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v2.1 &nbsp;·&nbsp; May 2026</p>
+<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v3.0 &nbsp;·&nbsp; May 2026</p>
 
 </body>
 </html>
