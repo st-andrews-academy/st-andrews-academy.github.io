@@ -30,6 +30,14 @@ All HTML, CSS (in `<style>`), and JavaScript (in `<script>`) are in `index.html`
 - **Faculty** — "2026 Reunion — Teacher Attendance" card (`#facReunionList`) lists attending/absent teachers, rendered by `initFaculty()`
 - These sections do not appear on any other dashboard
 
+**Overview page order (top to bottom):**
+1. Hero banner
+2. "About St. Andrew's Academy" card
+3. Stats bar (`#overviewStats`) — Total Alumni, Female, Male, Batches, Sections, Years of Service
+4. Two-column: Section Summary table + Batch 1986 Statistics
+
+**Alumni DB page:** shares the same stats bar HTML as Overview (`#dbStats`), populated by the same `statsHtml` variable in `initOverview()`.
+
 ### Data Layer (localStorage)
 
 All data persists client-side only — there is no server or backend.
