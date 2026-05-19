@@ -1,0 +1,9 @@
+# Local backups — kept in folder but not committed to GitHub
+index-LastOK*.html
+files.zip
+*.docx
+*.tmp
+~*
+
+# Editor workspace file
+*.code-workspace
