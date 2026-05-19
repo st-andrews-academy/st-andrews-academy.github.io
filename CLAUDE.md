@@ -13,7 +13,25 @@ St. Andrews Academy Alumni Portal — a single-file SPA for the Batch 1986 alumn
 
 No build step. Open `index.html` directly in a browser, or deploy to GitHub Pages by uploading the file to the `st-andrews-academy/st-andrews-academy.github.io` repository (goes live in ~2-5 minutes).
 
-Firestore requires an origin allowed in Firebase; running from `file://` may fail CORS — use a local HTTP server (e.g. `python -m http.server`) or just open from GitHub Pages. There are no package managers, bundlers, linters, or test frameworks.
+Firestore requires an origin allowed in Firebase; running from `file://` may fail CORS — use a local HTTP server (e.g. `python -m http.server`) or just open from GitHub Pages. There are no package managers, bundlers, linters, or test frameworks in the project itself.
+
+## Testing
+
+No test suite is checked in. For automated browser testing against the live site, use **Playwright** (available via `npx playwright`):
+
+```bash
+npm install playwright        # install locally (don't commit node_modules)
+npx playwright install chromium
+node my_test.mjs              # run tests
+rm -rf package.json package-lock.json node_modules my_test.mjs  # clean up
+```
+
+**Key patterns for writing tests:**
+- Use `waitUntil: 'load'` (not `networkidle`) — Firebase keeps connections open and `networkidle` never fires.
+- Wait for `#loadingOverlay` to be hidden before interacting: `page.waitForSelector('#loadingOverlay', { state: 'hidden' })`.
+- Modals are closed with explicit Cancel buttons, not Escape — use `page.click('#modalId button:has-text("Cancel")')`.
+- After cancelling the PIN modal, the parent modal is still open — close it separately.
+- The admin PIN for testing is `aneza654457` (default); read it from `ADMIN_PIN_DEFAULT` in the source.
 
 ## Architecture
 
