@@ -552,7 +552,7 @@
       </div>
       <div class="step">
         <div class="step-dot bg-green">2</div>
-        <div class="step-text">PIN modal confirms identity for protected actions (edit, delete, approve, restore, change PIN)</div>
+        <div class="step-text">PIN modal confirms identity for protected actions (add, edit, delete, approve, restore, change PIN)</div>
       </div>
       <div class="step">
         <div class="step-dot bg-purple">3</div>
@@ -824,7 +824,7 @@ window.addEventListener('load', () => {
      ══════════════════════════════════════════════ -->
 <div class="sequence" style="margin-top:24px;">
   <h2>PIN Access Control — Who Can Do What</h2>
-  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">The Admin PIN gates edit, delete, approve, and restore operations. Adding records and saving settings are open to anyone — no PIN required. The PIN prevents accidental or malicious changes to existing data when an admin leaves the portal open on a shared device.</p>
+  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">The Admin PIN gates all write operations — add, edit, delete, approve, and restore. Browsing, exporting, and saving display settings are open to anyone. The PIN prevents accidental or malicious changes when an admin leaves the portal open on a shared device. <strong>Timing note:</strong> Edit alumni/faculty requires PIN <em>before</em> opening the modal; Add alumni/faculty/event and Edit event require PIN <em>on Save</em> (after filling the form).</p>
 
   <div style="display:flex;gap:20px;flex-wrap:wrap;">
 
@@ -835,9 +835,6 @@ window.addEventListener('load', () => {
         <div class="comp-row"><span class="comp-icon">📥</span><span>Export alumni to CSV / Excel</span></div>
         <div class="comp-row"><span class="comp-icon">💾</span><span>Backup databases to JSON</span></div>
         <div class="comp-row"><span class="comp-icon">📝</span><span>Submit alumni self-registration request</span></div>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Alumni record</span></div>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Faculty member</span></div>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Memory Lane Event (with photos)</span></div>
         <div class="comp-row"><span class="comp-icon">💾</span><span>Save display settings (font size)</span></div>
       </div>
     </div>
@@ -845,8 +842,12 @@ window.addEventListener('load', () => {
     <div style="flex:1;min-width:280px;">
       <div style="background:#fff5f5;border:2px solid #e53935;border-radius:12px;padding:18px 20px;">
         <h3 style="font-size:0.82rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#b71c1c;margin-bottom:14px;">PIN required — Admin only</h3>
-        <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Alumni record</span></div>
-        <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Faculty record</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Alumni record — PIN on Save (after filling form)</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Faculty member — PIN on Save (after filling form)</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Add new Memory Lane Event — PIN on Save (after filling form)</span></div>
+        <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Alumni record — PIN before opening modal</span></div>
+        <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Faculty record — PIN before opening modal</span></div>
+        <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Memory Lane Event — PIN on Save (after editing)</span></div>
         <div class="comp-row"><span class="comp-icon">🗑️</span><span>Delete Alumni / Faculty / Event</span></div>
         <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending registration</span></div>
         <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Alumni JSON backup — overwrites alumni, events, settings (not faculty)</span></div>
