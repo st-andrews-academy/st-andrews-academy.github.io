@@ -131,9 +131,12 @@ let facDB;           // Faculty array
 let events;          // Memory Lane events
 let settings;        // { fontSize }
 let currentFontSize;
-let sortCol, sortDir;     // Alumni table sort state
-let facSortCol, facSortDir;
-let currentPage;     // Alumni table pagination
+let sortCol='Surname', sortDir=1; // Alumni table sort state
+let currentPage=1, pageSize=25;   // Alumni pagination (25 rows/page)
+let editIdx=-1;                   // -1 = add mode, ≥0 = edit mode for alumni modal
+let facSortCol='Surname', facSortDir=1;
+let facPage=1, facPageSize=20;    // Faculty pagination (20 rows/page)
+let facEditIdx=-1;                // -1 = add mode, ≥0 = edit mode for faculty modal
 let _pinCb;          // Pending PIN-protected callback
 let editEventIdx;    // -1 = add mode, ≥0 = edit mode for event modal
 let pendingPhotos;   // File[] accumulated across multiple file-picker opens
@@ -178,6 +181,8 @@ All modals share a consistent structure: an overlay `<div>` toggled with `displa
 ### Seed Data Updates
 
 To update the default dataset visible to all users on first load (or after clearing localStorage), edit the `ALUMNI_SEED` or `FAC_SEED` arrays in `index.html`, then redeploy. Existing users with data in localStorage will not see seed changes unless they restore from a backup or clear their storage.
+
+Seed counts: **321 alumni** across 7 sections (A–G), **15 faculty** records.
 
 ### Embedded Images
 
@@ -236,3 +241,6 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `genCode(batch, sec)` | Auto-generate student code |
 | `loadFromFirestore()` | Fetch all data (incl. all 4 pending queues) from Firestore on startup; falls back to localStorage |
 | `compressImage(file, maxW, quality)` | Client-side canvas compress before storing photo as base64 (default 1200px, 0.72 quality) |
+| `changeFont(d)` | Increment/decrement font size (range 10–24px, default 15); writes to `--fs` CSS custom property and localStorage |
+| `openLightbox(src)` | Open full-screen photo lightbox |
+| `backupFaculty()` | Download faculty JSON backup |
