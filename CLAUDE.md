@@ -140,15 +140,28 @@ let _toastTimer;     // clearTimeout handle so rapid toasts don't race
 
 `pinThen(fn)` shows the PIN modal and calls `fn()` on success. To add a new PIN-protected action, wrap it: `pinThen(() => yourAction())`.
 
+**Add → Pending queue (no PIN, open to anyone):**
+- **Add alumni** — `submitPendingAlumni()` saves to `saa_pending_alumni` / `portal/pending_alumni` for admin approval.
+- **Add faculty** — `submitPendingFaculty()` saves to `saa_pending_faculty` / `portal/pending_faculty` for admin approval.
+- **Add event** — `submitPendingEvent()` saves to `saa_pending_events` / `portal/pending_events` for admin approval.
+- The Save button in add modals shows "📝 Submit for Approval" (no PIN badge). `saveStudentWithPin` / `saveFacultyWithPin` / `saveEventOrSubmit` route to the submit path when `editIdx < 0` / `facEditIdx < 0` / `editEventIdx < 0`.
+
 **PIN required — Admin only:**
-- **Add** alumni/faculty/event — form opens freely; PIN is required on the **Save** button (`saveStudentWithPin` / `saveFacultyWithPin` / `pinThen(()=>saveEvent())`). This routes through `pinThen` only when `editIdx < 0` (add mode).
-- **Edit** alumni/faculty — PIN required **before** opening the edit modal (`editStudentPin` / `editFacultyPin` → `pinThen`). No second PIN on Save.
-- **Edit event** — `openEditEventModal(i)` opens freely; PIN on Save (same Save button as Add event).
+- **Edit** alumni/faculty — PIN required **before** opening the edit modal (`editStudentPin` / `editFacultyPin` → `pinThen`). No second PIN on Save. Save button shows "💾 Save Record PIN".
+- **Edit event** — `openEditEventModal(i)` opens freely; PIN on Save (`saveEventOrSubmit` → `pinThen(()=>saveEvent())` when `editEventIdx >= 0`). Save button shows "💾 Save Event PIN".
 - **Delete** alumni / faculty / event — `deleteStudentPin` / `deleteFacultyPin` / `deleteEventPin` → `pinThen`.
-- **Approve / Reject** pending registration — `pinThen(()=>approvePending(i))` / `pinThen(()=>rejectPending(i))`.
+- **Approve / Reject** any pending submission (alumni add, faculty add, event, self-registration) — all route through `pinThen`.
 - **Restore** alumni or faculty JSON backup — `pinThen(restoreData)` / `pinThen(restoreFaculty)`.
 
-**Not PIN-protected (open to anyone):** Opening Add modals, save display settings (`saveSettings`), backup/export downloads, self-registration submission.
+**Pending Approvals (Settings tab):** Four queues shown in `#pendingList`:
+1. Pending Alumni Additions (`saa_pending_alumni`) — `approvePendingAlumni` / `rejectPendingAlumni`
+2. Pending Faculty Additions (`saa_pending_faculty`) — `approvePendingFaculty` / `rejectPendingFaculty`
+3. Pending Events (`saa_pending_events`) — `approvePendingEvent` / `rejectPendingEvent`
+4. Self-Registrations (`saa_pending_reg`) — `approvePending` / `rejectPending`
+
+`updatePendingBadge()` sums all four queues for the Settings tab badge.
+
+**Not PIN-protected (open to anyone):** Opening any Add modal, submitting Add forms (goes to pending), save display settings (`saveSettings`), backup/export downloads, self-registration submission.
 
 **Change Admin PIN** uses its own modal (`openChgPin` / `doChgPin`) that requires entering the current PIN directly — it does not use `pinThen()`.
 
