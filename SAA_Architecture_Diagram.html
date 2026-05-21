@@ -376,7 +376,7 @@
     <div class="box box-firebase" id="b-firebase">
       <span class="icon">🔥</span>
       <div class="label">Firebase Firestore</div>
-      <div class="sublabel">Cloud database — alumni, faculty, events,<br>PIN, pending regs, alumni/faculty/event queues</div>
+      <div class="sublabel">Cloud database — alumni, faculty, events, PIN,<br>pending adds &amp; edits (7 queues total)</div>
       <span class="tag">Primary Database</span>
     </div>
 
@@ -483,7 +483,7 @@
       <div class="flow-num bg-orange">④</div>
       <div class="flow-text">
         <strong>Firestore → Browser &nbsp;(read on startup)</strong>
-        On every page load, <code>loadFromFirestore()</code> fetches alumni, faculty, events, config, and pending registrations from Firestore. This is the <strong>live shared data</strong> — the same data every user sees. If Firestore is unreachable, the browser falls back to its localStorage cache.
+        On every page load, <code>loadFromFirestore()</code> fetches 11 Firestore docs in parallel: alumni, faculty, events, config, and all 7 pending queues (adds + edits for alumni/faculty/events, plus self-registrations). This is the <strong>live shared data</strong> — the same data every user sees. If Firestore is unreachable, the browser falls back to its localStorage cache.
       </div>
     </div>
 
@@ -523,7 +523,7 @@
       </div>
       <div class="step">
         <div class="step-dot bg-orange">2</div>
-        <div class="step-text"><code>loadFromFirestore()</code> runs — fetches alumni, faculty, events, config, and pending registrations from Firestore in parallel</div>
+        <div class="step-text"><code>loadFromFirestore()</code> runs — fetches 11 Firestore docs in parallel: alumni, faculty, events, config, and all 7 pending queues (adds + edits for alumni/faculty/events, plus self-registrations)</div>
       </div>
       <div class="step">
         <div class="step-dot bg-orange">3</div>
@@ -826,6 +826,27 @@ window.addEventListener('load', () => {
         <td>Submitted via Add Event form (no PIN). Admin approves → published as <code>events/{evId}</code>.</td>
       </tr>
       <tr>
+        <td>Pending alumni edits</td>
+        <td><code>portal/pending_edit_alumni</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_edit_alumni</code></td>
+        <td><code>savePendingEditAlumni()</code></td>
+        <td>Submitted via Edit Alumni form (no PIN). Record stores <code>_originalCode</code> (Student_Code) to identify the target. Admin approves → replaces the matching record in <code>portal/alumni</code>.</td>
+      </tr>
+      <tr>
+        <td>Pending faculty edits</td>
+        <td><code>portal/pending_edit_faculty</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_edit_faculty</code></td>
+        <td><code>savePendingEditFaculty()</code></td>
+        <td>Submitted via Edit Faculty form (no PIN). Record stores <code>_originalCode</code> (Faculty_Code). Admin approves → replaces the matching record in <code>portal/faculty</code>.</td>
+      </tr>
+      <tr>
+        <td>Pending event edits</td>
+        <td><code>portal/pending_edit_events</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_edit_events</code></td>
+        <td><code>savePendingEditEvents()</code></td>
+        <td>Submitted via Edit Event form (no PIN). Record stores <code>_originalId</code> (event <code>_id</code>). Admin approves → updates the matching <code>events/{evId}</code> Firestore doc.</td>
+      </tr>
+      <tr>
         <td>Display settings</td>
         <td>Not synced to Firestore</td>
         <td><code>saa_settings</code> → <code>{fontSize}</code></td>
@@ -845,7 +866,7 @@ window.addEventListener('load', () => {
      ══════════════════════════════════════════════ -->
 <div class="sequence" style="margin-top:24px;">
   <h2>PIN Access Control — Who Can Do What</h2>
-  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">Adding new records (alumni, faculty, events) is open to anyone — submissions go to a pending queue, not the live database. The Admin PIN gates approvals, edits, deletions, and restores. This mirrors the self-registration workflow: anyone can submit, only the admin can publish. <strong>Timing note:</strong> Edit alumni/faculty requires PIN <em>before</em> opening the modal; Edit event requires PIN <em>on Save</em> (after editing).</p>
+  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">Adding <em>and editing</em> records (alumni, faculty, events) is open to anyone — submissions go to a pending queue, not the live database. The Admin PIN gates approvals, deletions, and restores only. This mirrors the self-registration workflow: anyone can submit, only the admin can publish or apply changes.</p>
 
   <div style="display:flex;gap:20px;flex-wrap:wrap;">
 
@@ -856,9 +877,12 @@ window.addEventListener('load', () => {
         <div class="comp-row"><span class="comp-icon">📥</span><span>Export alumni to CSV / Excel</span></div>
         <div class="comp-row"><span class="comp-icon">💾</span><span>Backup databases to JSON</span></div>
         <div class="comp-row"><span class="comp-icon">📝</span><span>Submit alumni self-registration (Register button)</span></div>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Submit new alumni record for admin approval (Add Record form → pending queue)</span></div>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Submit new faculty member for admin approval (Add Faculty form → pending queue)</span></div>
-        <div class="comp-row"><span class="comp-icon">➕</span><span>Submit new Memory Lane event for admin approval (Add Event form → pending queue)</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Submit new alumni record for admin approval (Add Record → pending queue)</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Submit new faculty member for admin approval (Add Faculty → pending queue)</span></div>
+        <div class="comp-row"><span class="comp-icon">➕</span><span>Submit new Memory Lane event for admin approval (Add Event → pending queue)</span></div>
+        <div class="comp-row"><span class="comp-icon">✏️</span><span>Submit alumni edit for admin approval (Edit modal → pending edit queue)</span></div>
+        <div class="comp-row"><span class="comp-icon">✏️</span><span>Submit faculty edit for admin approval (Edit modal → pending edit queue)</span></div>
+        <div class="comp-row"><span class="comp-icon">✏️</span><span>Submit event edit for admin approval (Edit modal → pending edit queue)</span></div>
         <div class="comp-row"><span class="comp-icon">💾</span><span>Save display settings (font size)</span></div>
       </div>
     </div>
@@ -866,13 +890,13 @@ window.addEventListener('load', () => {
     <div style="flex:1;min-width:280px;">
       <div style="background:#fff5f5;border:2px solid #e53935;border-radius:12px;padding:18px 20px;">
         <h3 style="font-size:0.82rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#b71c1c;margin-bottom:14px;">PIN required — Admin only</h3>
-        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending alumni addition</span></div>
-        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending faculty addition</span></div>
-        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending event submission</span></div>
+        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending alumni add</span></div>
+        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending alumni edit</span></div>
+        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending faculty add</span></div>
+        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending faculty edit</span></div>
+        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending event add</span></div>
+        <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject pending event edit</span></div>
         <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject self-registration (Register button)</span></div>
-        <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Alumni record — PIN before opening modal</span></div>
-        <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Faculty record — PIN before opening modal</span></div>
-        <div class="comp-row"><span class="comp-icon">✏️</span><span>Edit existing Memory Lane Event — PIN on Save (after editing)</span></div>
         <div class="comp-row"><span class="comp-icon">🗑️</span><span>Delete Alumni / Faculty / Event</span></div>
         <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Alumni JSON backup — overwrites alumni, events, settings (not faculty)</span></div>
         <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Faculty JSON backup — overwrites faculty records only</span></div>
@@ -884,7 +908,7 @@ window.addEventListener('load', () => {
 
   <div style="margin-top:14px;padding:12px 16px;background:#e8f0fe;border-left:4px solid #4a80d4;border-radius:8px;font-size:0.82rem;color:#1a3a8a;line-height:1.6;">
     <strong>How the PIN works:</strong> The PIN is stored in <code>saa_admin_pin</code> in localStorage and synced to <code>portal/config</code> in Firestore. On startup, the Firestore PIN overwrites the local one. Falls back to default <code>aneza654457</code> if absent in both. When a PIN-protected action is triggered, a modal appears asking for the PIN. On success, the action proceeds and is written to both Firestore and localStorage.<br><br>
-    <strong>Pending queue flow:</strong> Add forms (alumni, faculty, event) write to <code>portal/pending_alumni</code>, <code>portal/pending_faculty</code>, <code>portal/pending_events</code> respectively. The Settings tab shows all four pending queues with an aggregate badge count. Admin approves (PIN) → record moves to the live database. Admin rejects (PIN) → record is discarded.<br><br>
+    <strong>Pending queue flow:</strong> Add forms (alumni, faculty, event) and Edit forms all write to pending queues — 7 queues total across <code>portal/pending_alumni</code>, <code>portal/pending_edit_alumni</code>, <code>portal/pending_faculty</code>, <code>portal/pending_edit_faculty</code>, <code>portal/pending_events</code>, <code>portal/pending_edit_events</code>, and <code>portal/pending</code> (self-reg). The Settings tab shows all seven queues with an aggregate badge count. Admin approves (PIN) → record moves to/updates the live database. Admin rejects (PIN) → record is discarded.<br><br>
     <strong>Backup vs Restore:</strong> Downloading backups never requires the PIN (read-only). Restoring is PIN-protected because it overwrites stored data. Alumni restore (<code>restoreData()</code>) and Faculty restore (<code>restoreFaculty()</code>) are independent — each only overwrites its own dataset.
   </div>
 </div>
@@ -948,7 +972,7 @@ window.addEventListener('load', () => {
       </tr>
       <tr>
         <td>Who writes data?</td>
-        <td class="yes">Anyone can submit additions (→ pending queue); admin approves/edits/deletes (PIN-protected)</td>
+        <td class="yes">Anyone can submit additions or edits (→ pending queue); admin approves/deletes (PIN-protected)</td>
         <td class="no">Untrusted customers — must be validated server-side</td>
       </tr>
       <tr>
@@ -1022,7 +1046,7 @@ window.addEventListener('load', () => {
   </div>
 </div>
 
-<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v4.0 &nbsp;·&nbsp; May 2026</p>
+<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v5.0 &nbsp;·&nbsp; May 2026</p>
 
 </body>
 </html>

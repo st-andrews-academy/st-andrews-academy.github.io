@@ -82,6 +82,9 @@ Firebase SDK v10.12.0 compat is loaded via two CDN `<script>` tags (lines 173–
 | `portal/pending_alumni` | `{ records: [...] }` — pending alumni add submissions |
 | `portal/pending_faculty` | `{ records: [...] }` — pending faculty add submissions |
 | `portal/pending_events` | `{ records: [...] }` — pending event add submissions |
+| `portal/pending_edit_alumni` | `{ records: [...] }` — pending alumni edit submissions |
+| `portal/pending_edit_faculty` | `{ records: [...] }` — pending faculty edit submissions |
+| `portal/pending_edit_events` | `{ records: [...] }` — pending event edit submissions |
 | `events/{evId}` | Individual event doc; `evId` is `Date.now().toString()` |
 
 Events are stored as individual Firestore documents (not in a single array doc) and carry an `_id` field matching their document ID. `saveEvents()` only writes to localStorage; Firestore writes for events are done explicitly at creation (`fstore.collection('events').doc(evId).set(ev)`), edit (`fstore.collection('events').doc(ev._id).set(ev)`), and deletion (`fstore.collection('events').doc(ev._id).delete()`).
@@ -98,6 +101,9 @@ Events are stored as individual Firestore documents (not in a single array doc) 
 | `saa_pending_alumni` | Pending alumni add submissions array |
 | `saa_pending_faculty` | Pending faculty add submissions array |
 | `saa_pending_events` | Pending event add submissions array |
+| `saa_pending_edit_alumni` | Pending alumni edit submissions array |
+| `saa_pending_edit_faculty` | Pending faculty edit submissions array |
+| `saa_pending_edit_events` | Pending event edit submissions array |
 | `saa_admin_pin` | Custom PIN (falls back to default if absent) |
 
 On first load, if Firestore has no data, `ALUMNI_SEED` and `FAC_SEED` are written to both Firestore and localStorage. Existing users see Firestore data on every load, so seed changes in the file are **ignored** for existing users unless Firestore data is cleared.
@@ -155,22 +161,28 @@ let _toastTimer;     // clearTimeout handle so rapid toasts don't race
 - **Add event** — `submitPendingEvent()` saves to `saa_pending_events` / `portal/pending_events` for admin approval.
 - The Save button in add modals shows "📝 Submit for Approval" (no PIN badge). `saveStudentWithPin` / `saveFacultyWithPin` / `saveEventOrSubmit` route to the submit path when `editIdx < 0` / `facEditIdx < 0` / `editEventIdx < 0`.
 
+**Edit → Pending queue (no PIN, open to anyone):**
+- **Edit alumni** — `editStudentPin(idx)` opens the modal directly (no PIN). Save calls `submitPendingEditAlumni()` which saves to `saa_pending_edit_alumni` / `portal/pending_edit_alumni`. Save button shows "📝 Submit Edit for Approval". The pending record stores `_originalCode` (Student_Code) and `_displayName` so admin can identify which record is being edited.
+- **Edit faculty** — `editFacultyPin(idx)` opens the modal directly (no PIN). Save calls `submitPendingEditFaculty()` → `saa_pending_edit_faculty` / `portal/pending_edit_faculty`. Same pattern as alumni.
+- **Edit event** — `openEditEventModal(i)` opens freely. Save calls `submitPendingEditEvent()` → `saa_pending_edit_events` / `portal/pending_edit_events`. Pending record stores `_originalId` (event `_id`) and `_displayName`.
+
 **PIN required — Admin only:**
-- **Edit** alumni/faculty — PIN required **before** opening the edit modal (`editStudentPin` / `editFacultyPin` → `pinThen`). No second PIN on Save. Save button shows "💾 Save Record PIN".
-- **Edit event** — `openEditEventModal(i)` opens freely; PIN on Save (`saveEventOrSubmit` → `pinThen(()=>saveEvent())` when `editEventIdx >= 0`). Save button shows "💾 Save Event PIN".
 - **Delete** alumni / faculty / event — `deleteStudentPin` / `deleteFacultyPin` / `deleteEventPin` → `pinThen`.
-- **Approve / Reject** any pending submission (alumni add, faculty add, event, self-registration) — all route through `pinThen`.
+- **Approve / Reject** any pending submission (alumni add, alumni edit, faculty add, faculty edit, event add, event edit, self-registration) — all route through `pinThen`.
 - **Restore** alumni or faculty JSON backup — `pinThen(restoreData)` / `pinThen(restoreFaculty)`.
 
-**Pending Approvals (Settings tab):** Four queues shown in `#pendingList`:
+**Pending Approvals (Settings tab):** Seven queues shown in `#pendingList`:
 1. Pending Alumni Additions (`saa_pending_alumni`) — `approvePendingAlumni` / `rejectPendingAlumni`
-2. Pending Faculty Additions (`saa_pending_faculty`) — `approvePendingFaculty` / `rejectPendingFaculty`
-3. Pending Events (`saa_pending_events`) — `approvePendingEvent` / `rejectPendingEvent`
-4. Self-Registrations (`saa_pending_reg`) — `approvePending` / `rejectPending`
+2. Pending Alumni Edits (`saa_pending_edit_alumni`) — `approvePendingEditAlumni` / `rejectPendingEditAlumni`
+3. Pending Faculty Additions (`saa_pending_faculty`) — `approvePendingFaculty` / `rejectPendingFaculty`
+4. Pending Faculty Edits (`saa_pending_edit_faculty`) — `approvePendingEditFaculty` / `rejectPendingEditFaculty`
+5. Pending Events (`saa_pending_events`) — `approvePendingEvent` / `rejectPendingEvent`
+6. Pending Event Edits (`saa_pending_edit_events`) — `approvePendingEditEvent` / `rejectPendingEditEvent`
+7. Self-Registrations (`saa_pending_reg`) — `approvePending` / `rejectPending`
 
-`updatePendingBadge()` sums all four queues for the Settings tab badge.
+`updatePendingBadge()` sums all seven queues for the Settings tab badge.
 
-**Not PIN-protected (open to anyone):** Opening any Add modal, submitting Add forms (goes to pending), save display settings (`saveSettings`), backup/export downloads, self-registration submission.
+**Not PIN-protected (open to anyone):** Opening any Add or Edit modal, submitting Add/Edit forms (goes to pending), save display settings (`saveSettings`), backup/export downloads, self-registration submission.
 
 **Change Admin PIN** uses its own modal (`openChgPin` / `doChgPin`) that requires entering the current PIN directly — it does not use `pinThen()`.
 
@@ -208,38 +220,47 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `renderTable()` | Rebuild alumni table with current filters/sort/page |
 | `getFiltered()` | Returns filtered+sorted alumni array |
 | `sortTable(col)` | Toggle sort on column |
-| `openAddModal()` / `saveStudentWithPin()` | Open Add Alumni modal / route to `submitPendingAlumni` (add) or `saveStudent` (edit) |
-| `submitPendingAlumni()` | Submit new alumni to pending queue (no PIN) |
-| `editStudentPin(idx)` / `editStudent(idx)` | Edit alumni — PIN before opening modal |
+| `openAddModal()` / `saveStudentWithPin()` | Open Add Alumni modal / route to `submitPendingAlumni` (add) or `submitPendingEditAlumni` (edit) |
+| `submitPendingAlumni()` | Submit new alumni to pending add queue (no PIN) |
+| `submitPendingEditAlumni()` | Submit alumni edit to pending edit queue (no PIN) — stores `_originalCode` + `_displayName` |
+| `editStudentPin(idx)` / `editStudent(idx)` | Open alumni edit modal directly (no PIN required) |
 | `deleteStudentPin(idx)` / `deleteStudent(idx)` | Delete alumni (PIN-protected) |
-| `approvePendingAlumni(i)` / `rejectPendingAlumni(i)` | Approve/reject pending alumni submission (PIN-protected) |
+| `approvePendingAlumni(i)` / `rejectPendingAlumni(i)` | Approve/reject pending alumni add (PIN-protected) |
+| `approvePendingEditAlumni(i)` / `rejectPendingEditAlumni(i)` | Approve/reject pending alumni edit — finds record by `Student_Code` and replaces it (PIN-protected) |
 | `renderFaculty()` | Rebuild faculty table |
-| `openAddFacultyModal()` / `saveFacultyWithPin()` | Open Add Faculty modal / route to `submitPendingFaculty` (add) or `saveFaculty` (edit) |
-| `submitPendingFaculty()` | Submit new faculty to pending queue (no PIN) |
-| `editFacultyPin(idx)` / `editFaculty(idx)` | Edit faculty — PIN before opening modal |
+| `openAddFacultyModal()` / `saveFacultyWithPin()` | Open Add Faculty modal / route to `submitPendingFaculty` (add) or `submitPendingEditFaculty` (edit) |
+| `submitPendingFaculty()` | Submit new faculty to pending add queue (no PIN) |
+| `submitPendingEditFaculty()` | Submit faculty edit to pending edit queue (no PIN) — stores `_originalCode` + `_displayName` |
+| `editFacultyPin(idx)` / `editFaculty(idx)` | Open faculty edit modal directly (no PIN required) |
 | `deleteFacultyPin(idx)` / `deleteFaculty(idx)` | Delete faculty (PIN-protected) |
-| `approvePendingFaculty(i)` / `rejectPendingFaculty(i)` | Approve/reject pending faculty submission (PIN-protected) |
+| `approvePendingFaculty(i)` / `rejectPendingFaculty(i)` | Approve/reject pending faculty add (PIN-protected) |
+| `approvePendingEditFaculty(i)` / `rejectPendingEditFaculty(i)` | Approve/reject pending faculty edit — finds by `Faculty_Code` (PIN-protected) |
 | `showBatch(year)` / `showClass(year, sec)` | Graduation tab navigation |
 | `renderEvents()` | Memory Lane list render |
-| `openEventModal()` / `openEditEventModal(i)` | Open add (→ pending) / edit (→ PIN on save) event modal |
-| `saveEventOrSubmit()` | Route to `submitPendingEvent` (add) or `pinThen(saveEvent)` (edit) |
-| `submitPendingEvent()` | Submit new event to pending queue (no PIN) |
-| `saveEvent()` | Save edited event to Firestore (called via `pinThen`) |
-| `approvePendingEvent(i)` / `rejectPendingEvent(i)` | Approve/reject pending event submission (PIN-protected) |
+| `openEventModal()` / `openEditEventModal(i)` | Open add (→ pending) / edit (→ pending on save) event modal |
+| `saveEventOrSubmit()` | Route to `submitPendingEvent` (add) or `submitPendingEditEvent` (edit) |
+| `submitPendingEvent()` | Submit new event to pending add queue (no PIN) |
+| `submitPendingEditEvent()` | Submit event edit to pending edit queue (no PIN) — stores `_originalId` + `_displayName` |
+| `saveEvent()` | Save edited event directly to Firestore (called only via `approvePendingEditEvent`) |
+| `approvePendingEvent(i)` / `rejectPendingEvent(i)` | Approve/reject pending event add (PIN-protected) |
+| `approvePendingEditEvent(i)` / `rejectPendingEditEvent(i)` | Approve/reject pending event edit — finds by `_id`, updates Firestore doc (PIN-protected) |
 | `appendPhotos(input)` | Accumulate file picks into `pendingPhotos[]` |
 | `updatePhotoPreview()` | Render photo thumbnails with ✕ remove buttons |
-| `renderPending()` | Render all 4 pending queues in `#pendingList` (Settings tab) |
-| `updatePendingBadge()` | Sum all 4 pending queues for the Settings tab badge count |
+| `renderPending()` | Render all 7 pending queues in `#pendingList` (Settings tab) |
+| `updatePendingBadge()` | Sum all 7 pending queues for the Settings tab badge count |
 | `savePending(p)` | Save self-registrations to localStorage + `portal/pending` |
-| `savePendingAlumni(p)` | Save pending alumni to localStorage + `portal/pending_alumni` |
-| `savePendingFaculty(p)` | Save pending faculty to localStorage + `portal/pending_faculty` |
-| `savePendingEvents(p)` | Save pending events to localStorage + `portal/pending_events` |
+| `savePendingAlumni(p)` | Save pending alumni adds to localStorage + `portal/pending_alumni` |
+| `savePendingFaculty(p)` | Save pending faculty adds to localStorage + `portal/pending_faculty` |
+| `savePendingEvents(p)` | Save pending event adds to localStorage + `portal/pending_events` |
+| `savePendingEditAlumni(p)` | Save pending alumni edits to localStorage + `portal/pending_edit_alumni` |
+| `savePendingEditFaculty(p)` | Save pending faculty edits to localStorage + `portal/pending_edit_faculty` |
+| `savePendingEditEvents(p)` | Save pending event edits to localStorage + `portal/pending_edit_events` |
 | `backupData()` / `restoreData()` | JSON backup/restore (restore is PIN-protected) |
 | `exportCSV()` | Download alumni as CSV |
 | `toast(msg)` | Show a brief notification |
 | `dl(name, content, type)` | Trigger a file download |
 | `genCode(batch, sec)` | Auto-generate student code |
-| `loadFromFirestore()` | Fetch all data (incl. all 4 pending queues) from Firestore on startup; falls back to localStorage |
+| `loadFromFirestore()` | Fetch all data (incl. all 7 pending queues, 11 Firestore docs total) from Firestore on startup; falls back to localStorage |
 | `compressImage(file, maxW, quality)` | Client-side canvas compress before storing photo as base64 (default 1200px, 0.72 quality) |
 | `changeFont(d)` | Increment/decrement font size (range 10–24px, default 15); writes to `--fs` CSS custom property and localStorage |
 | `openLightbox(src)` | Open full-screen photo lightbox |
