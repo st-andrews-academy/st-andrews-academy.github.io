@@ -7,3 +7,9 @@ files.zip
 
 # Editor workspace file
 *.code-workspace
+
+# Claude Code local settings (contains API keys)
+.claude/
+
+# Local backup exports
+Files/
