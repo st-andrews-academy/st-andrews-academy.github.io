@@ -65,6 +65,12 @@ All HTML, CSS (in `<style>`), and JavaScript (in `<script>`) are in `index.html`
 
 **Alumni DB page:** shares the same stats bar HTML as Overview (`#dbStats`), populated by the same `statsHtml` variable in `initOverview()`.
 
+**Notices page layout (split-panel):**
+- The page uses `display:flex; flex-direction:column; height:calc(100vh - 92px); overflow:hidden` so it fills the viewport below the fixed nav and online banner.
+- **Announcements card** (top, `flex:2` ≈ 2/3 of height) — independently scrollable list (`#announcementList`, class `notices-list`). Live search via `#annSearch` filters by title or body text in real time (`oninput="renderAnnouncements()"`).
+- **Feedback card** (bottom, `flex:1` ≈ 1/3 of height) — independently scrollable list (`#feedbackList`, class `notices-list`). Live search via `#fbSearch` filters by name or message text in real time (`oninput="renderFeedbackList()"`).
+- Both cards have CSS class `notices-card` (`display:flex; flex-direction:column; min-height:0; margin-bottom:0`). When no results match a search term, a contextual "No … match your search." message is shown instead of the default "No … yet." message.
+
 ### Data Layer
 
 **Primary store: Firestore.** On load, `loadFromFirestore()` fetches all data from Firestore and syncs it into localStorage as a cache. If Firestore is unreachable, the app falls back to localStorage (or seed data on first visit). All writes go to both localStorage and Firestore in parallel — Firestore failures are non-fatal (`console.warn` only).
@@ -281,13 +287,13 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `appendPhotos(input)` | Accumulate file picks into `pendingPhotos[]` |
 | `updatePhotoPreview()` | Render photo thumbnails with ✕ remove buttons |
 | `initNotices()` | Called by `showPage('notices')` — renders announcements and feedback lists |
-| `renderAnnouncements()` | Rebuild announcements list in `#announcementList` (latest-first) |
+| `renderAnnouncements()` | Rebuild announcements list in `#announcementList` (latest-first); reads `#annSearch` and filters by title/body if a search term is present |
 | `openAddAnnouncementModal()` / `openEditAnnouncementModal(idx)` | Open announcement add/edit modal (both PIN-gated via `pinThen`) |
 | `closeAnnouncementModal()` | Close announcement modal |
 | `saveAnnouncement()` | Save announcement directly to Firestore (no pending queue) |
 | `deleteAnnouncement(idx)` | Delete announcement (PIN-protected) |
 | `saveAnnouncements(a)` | Persist announcements to localStorage + `portal/announcements` |
-| `renderFeedbackList()` | Rebuild approved feedback list in `#feedbackList` (latest-first) |
+| `renderFeedbackList()` | Rebuild approved feedback list in `#feedbackList` (latest-first); reads `#fbSearch` and filters by name/message if a search term is present |
 | `openAddFeedbackModal()` / `openEditFeedbackModal(idx)` | Open feedback add/edit modal (no PIN) |
 | `closeFeedbackModal()` | Close feedback modal |
 | `saveFeedbackOrSubmit()` | Route to `submitPendingFeedback` (add) or `submitPendingEditFeedback` (edit) |
