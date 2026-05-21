@@ -50,7 +50,7 @@ All HTML, CSS (in `<style>`), and JavaScript (in `<script>`) are in `index.html`
 
 ### Navigation & Tabs
 
-`showPage(id, btn)` controls which of the 7 tabs is visible: Overview, History, Graduation, Alumni DB, Faculty, Memory Lane, Settings. Each tab has an `init*()` function called on `DOMContentLoaded`.
+`showPage(id, btn)` controls which of the 8 tabs is visible: Overview, History, Graduation, Alumni DB, Faculty, Memory Lane, Notices, Settings. Each tab has an `init*()` function called on `DOMContentLoaded`.
 
 **Dashboard-specific reunion sections:**
 - **Memory Lane** — stat bar (`#mlReunionStats`) shows 2026 Reunion Grand Total (₱225,200) and Contributors (98), rendered once by `renderEvents()`
@@ -85,6 +85,10 @@ Firebase SDK v10.12.0 compat is loaded via two CDN `<script>` tags (lines 173–
 | `portal/pending_edit_alumni` | `{ records: [...] }` — pending alumni edit submissions |
 | `portal/pending_edit_faculty` | `{ records: [...] }` — pending faculty edit submissions |
 | `portal/pending_edit_events` | `{ records: [...] }` — pending event edit submissions |
+| `portal/announcements` | `{ records: [...] }` — announcements (admin-only add/edit/delete) |
+| `portal/feedback` | `{ records: [...] }` — approved feedback entries |
+| `portal/pending_feedback` | `{ records: [...] }` — pending feedback add submissions |
+| `portal/pending_edit_feedback` | `{ records: [...] }` — pending feedback edit submissions |
 | `events/{evId}` | Individual event doc; `evId` is `Date.now().toString()` |
 
 Events are stored as individual Firestore documents (not in a single array doc) and carry an `_id` field matching their document ID. `saveEvents()` only writes to localStorage; Firestore writes for events are done explicitly at creation (`fstore.collection('events').doc(evId).set(ev)`), edit (`fstore.collection('events').doc(ev._id).set(ev)`), and deletion (`fstore.collection('events').doc(ev._id).delete()`).
@@ -104,6 +108,10 @@ Events are stored as individual Firestore documents (not in a single array doc) 
 | `saa_pending_edit_alumni` | Pending alumni edit submissions array |
 | `saa_pending_edit_faculty` | Pending faculty edit submissions array |
 | `saa_pending_edit_events` | Pending event edit submissions array |
+| `saa_announcements` | Announcements array |
+| `saa_feedback` | Approved feedback array |
+| `saa_pending_feedback` | Pending feedback add submissions array |
+| `saa_pending_edit_feedback` | Pending feedback edit submissions array |
 | `saa_admin_pin` | Custom PIN (falls back to default if absent) |
 
 On first load, if Firestore has no data, `ALUMNI_SEED` and `FAC_SEED` are written to both Firestore and localStorage. Existing users see Firestore data on every load, so seed changes in the file are **ignored** for existing users unless Firestore data is cleared.
@@ -129,6 +137,18 @@ On first load, if Firestore has no data, `ALUMNI_SEED` and `FAC_SEED` are writte
 // Pending Registration
 { First_Name, Middle_Initial, Surname, Married_Surname, Section, Batch,
   Gender, Birthday, Profession, Contact, Message, Submitted, Status }
+
+// Announcement (admin-only add/edit/delete)
+{ _id, title, body, created }
+
+// Feedback (approved)
+{ _id, name, message, created }
+
+// Pending Feedback Add
+{ name, message, Submitted }
+
+// Pending Feedback Edit
+{ _id, name, message, Submitted, _originalId, _displayName }
 ```
 
 ### Global State
@@ -151,6 +171,10 @@ let pendingPhotos;   // File[] accumulated across multiple file-picker opens
 let existingPhotoUrls; // base64[] of photos already saved (edit mode only)
 let _pendingObjectUrls; // object URLs created for photo thumbnails — revoked on each redraw and on modal close
 let _toastTimer;     // clearTimeout handle so rapid toasts don't race
+let announcements;   // Announcements array (Notices tab)
+let feedbackDB;      // Approved feedback array (Notices tab)
+let editAnnouncementIdx; // -1 = add mode, ≥0 = edit mode for announcement modal
+let editFeedbackIdx;     // -1 = add mode, ≥0 = edit mode for feedback modal
 ```
 
 ### PIN Authentication Pattern
@@ -161,28 +185,34 @@ let _toastTimer;     // clearTimeout handle so rapid toasts don't race
 - **Add alumni** — `submitPendingAlumni()` saves to `saa_pending_alumni` / `portal/pending_alumni` for admin approval.
 - **Add faculty** — `submitPendingFaculty()` saves to `saa_pending_faculty` / `portal/pending_faculty` for admin approval.
 - **Add event** — `submitPendingEvent()` saves to `saa_pending_events` / `portal/pending_events` for admin approval.
-- The Save button in add modals shows "📝 Submit for Approval" (no PIN badge). `saveStudentWithPin` / `saveFacultyWithPin` / `saveEventOrSubmit` route to the submit path when `editIdx < 0` / `facEditIdx < 0` / `editEventIdx < 0`.
+- **Submit feedback** — `submitPendingFeedback()` saves to `saa_pending_feedback` / `portal/pending_feedback` for admin approval.
+- The Save button in add modals shows "📝 Submit for Approval" (no PIN badge). `saveStudentWithPin` / `saveFacultyWithPin` / `saveEventOrSubmit` / `saveFeedbackOrSubmit` route to the submit path when in add mode.
 
 **Edit → Pending queue (no PIN, open to anyone):**
 - **Edit alumni** — `editStudentPin(idx)` opens the modal directly (no PIN). Save calls `submitPendingEditAlumni()` which saves to `saa_pending_edit_alumni` / `portal/pending_edit_alumni`. Save button shows "📝 Submit Edit for Approval". The pending record stores `_originalCode` (Student_Code) and `_displayName` so admin can identify which record is being edited.
 - **Edit faculty** — `editFacultyPin(idx)` opens the modal directly (no PIN). Save calls `submitPendingEditFaculty()` → `saa_pending_edit_faculty` / `portal/pending_edit_faculty`. Same pattern as alumni.
 - **Edit event** — `openEditEventModal(i)` opens freely. Save calls `submitPendingEditEvent()` → `saa_pending_edit_events` / `portal/pending_edit_events`. Pending record stores `_originalId` (event `_id`) and `_displayName`.
+- **Edit feedback** — `openEditFeedbackModal(idx)` opens freely. Save calls `submitPendingEditFeedback()` → `saa_pending_edit_feedback` / `portal/pending_edit_feedback`. Pending record stores `_originalId` (feedback `_id`) and `_displayName`.
 
 **PIN required — Admin only:**
+- **Add / Edit / Delete announcements** — `openAddAnnouncementModal()` / `openEditAnnouncementModal(idx)` / `deleteAnnouncement(idx)` — all wrapped in `pinThen`. Announcements are written directly (no pending queue).
+- **Delete feedback** (from approved list) — `deleteFeedbackPin(idx)` → `pinThen`.
 - **Delete** alumni / faculty / event — `deleteStudentPin` / `deleteFacultyPin` / `deleteEventPin` → `pinThen`.
-- **Approve / Reject** any pending submission (alumni add, alumni edit, faculty add, faculty edit, event add, event edit, self-registration) — all route through `pinThen`.
+- **Approve / Reject** any pending submission (alumni add, alumni edit, faculty add, faculty edit, event add, event edit, feedback add, feedback edit, self-registration) — all route through `pinThen`.
 - **Restore** alumni or faculty JSON backup — `pinThen(restoreData)` / `pinThen(restoreFaculty)`.
 
-**Pending Approvals (Settings tab):** Seven queues shown in `#pendingList`:
+**Pending Approvals (Settings tab):** Nine queues shown in `#pendingList`:
 1. Pending Alumni Additions (`saa_pending_alumni`) — `approvePendingAlumni` / `rejectPendingAlumni`
 2. Pending Alumni Edits (`saa_pending_edit_alumni`) — `approvePendingEditAlumni` / `rejectPendingEditAlumni`
 3. Pending Faculty Additions (`saa_pending_faculty`) — `approvePendingFaculty` / `rejectPendingFaculty`
 4. Pending Faculty Edits (`saa_pending_edit_faculty`) — `approvePendingEditFaculty` / `rejectPendingEditFaculty`
 5. Pending Events (`saa_pending_events`) — `approvePendingEvent` / `rejectPendingEvent`
 6. Pending Event Edits (`saa_pending_edit_events`) — `approvePendingEditEvent` / `rejectPendingEditEvent`
-7. Self-Registrations (`saa_pending_reg`) — `approvePending` / `rejectPending`
+7. Pending Feedback (`saa_pending_feedback`) — `approvePendingFeedback` / `rejectPendingFeedback`
+8. Pending Feedback Edits (`saa_pending_edit_feedback`) — `approvePendingEditFeedback` / `rejectPendingEditFeedback`
+9. Self-Registrations (`saa_pending_reg`) — `approvePending` / `rejectPending`
 
-`updatePendingBadge()` sums all seven queues for the Settings tab badge.
+`updatePendingBadge()` sums all nine queues for the Settings tab badge.
 
 **Not PIN-protected (open to anyone):** Opening any Add or Edit modal, submitting Add/Edit forms (goes to pending), save display settings (`saveSettings`), backup/export downloads, self-registration submission.
 
@@ -250,8 +280,27 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `approvePendingEditEvent(i)` / `rejectPendingEditEvent(i)` | Approve/reject pending event edit — finds by `_id`, updates Firestore doc (PIN-protected) |
 | `appendPhotos(input)` | Accumulate file picks into `pendingPhotos[]` |
 | `updatePhotoPreview()` | Render photo thumbnails with ✕ remove buttons |
-| `renderPending()` | Render all 7 pending queues in `#pendingList` (Settings tab) |
-| `updatePendingBadge()` | Sum all 7 pending queues for the Settings tab badge count |
+| `initNotices()` | Called by `showPage('notices')` — renders announcements and feedback lists |
+| `renderAnnouncements()` | Rebuild announcements list in `#announcementList` (latest-first) |
+| `openAddAnnouncementModal()` / `openEditAnnouncementModal(idx)` | Open announcement add/edit modal (both PIN-gated via `pinThen`) |
+| `closeAnnouncementModal()` | Close announcement modal |
+| `saveAnnouncement()` | Save announcement directly to Firestore (no pending queue) |
+| `deleteAnnouncement(idx)` | Delete announcement (PIN-protected) |
+| `saveAnnouncements(a)` | Persist announcements to localStorage + `portal/announcements` |
+| `renderFeedbackList()` | Rebuild approved feedback list in `#feedbackList` (latest-first) |
+| `openAddFeedbackModal()` / `openEditFeedbackModal(idx)` | Open feedback add/edit modal (no PIN) |
+| `closeFeedbackModal()` | Close feedback modal |
+| `saveFeedbackOrSubmit()` | Route to `submitPendingFeedback` (add) or `submitPendingEditFeedback` (edit) |
+| `submitPendingFeedback()` | Submit new feedback to pending add queue (no PIN) |
+| `submitPendingEditFeedback()` | Submit feedback edit to pending edit queue (no PIN) — stores `_originalId` + `_displayName` |
+| `deleteFeedbackPin(idx)` | Delete approved feedback (PIN-protected) |
+| `saveFeedbackDB(f)` | Persist approved feedback to localStorage + `portal/feedback` |
+| `savePendingFeedback(p)` | Persist pending feedback adds to localStorage + `portal/pending_feedback` |
+| `savePendingEditFeedback(p)` | Persist pending feedback edits to localStorage + `portal/pending_edit_feedback` |
+| `approvePendingFeedback(i)` / `rejectPendingFeedback(i)` | Approve/reject pending feedback add (PIN-protected) |
+| `approvePendingEditFeedback(i)` / `rejectPendingEditFeedback(i)` | Approve/reject pending feedback edit — finds by `_id` and updates `feedbackDB` (PIN-protected) |
+| `renderPending()` | Render all 9 pending queues in `#pendingList` (Settings tab) |
+| `updatePendingBadge()` | Sum all 9 pending queues for the Settings tab badge count |
 | `savePending(p)` | Save self-registrations to localStorage + `portal/pending` |
 | `savePendingAlumni(p)` | Save pending alumni adds to localStorage + `portal/pending_alumni` |
 | `savePendingFaculty(p)` | Save pending faculty adds to localStorage + `portal/pending_faculty` |
@@ -264,7 +313,7 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `toast(msg)` | Show a brief notification |
 | `dl(name, content, type)` | Trigger a file download |
 | `genCode(batch, sec)` | Auto-generate student code |
-| `loadFromFirestore()` | Fetch all data (incl. all 7 pending queues, 11 Firestore docs total) from Firestore on startup; falls back to localStorage |
+| `loadFromFirestore()` | Fetch all data (incl. all 9 pending queues, 15 Firestore docs total) from Firestore on startup; falls back to localStorage |
 | `compressImage(file, maxW, quality)` | Client-side canvas compress before storing photo as base64 (default 1200px, 0.72 quality) |
 | `changeFont(d)` | Increment/decrement font size (range 10–24px, default 15); writes to `--fs` CSS custom property and localStorage |
 | `openLightbox(src)` | Open full-screen photo lightbox |
