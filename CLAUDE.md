@@ -114,12 +114,14 @@ On first load, if Firestore has no data, `ALUMNI_SEED` and `FAC_SEED` are writte
 // Alumni
 { Student_Code, First_Name, Middle_Initial, Surname, Married_Surname,
   Section, Batch, Gender, Profession, Birthday, Marital_Status,
-  Children_Information, Deceased, Remarks }
+  Children_Information, Deceased, Remarks,
+  Email, Cellphone }   // admin-only — stored in DB, never shown in dashboard tables
 
 // Faculty
 { Faculty_Code, Surname, First_Name, Middle_Initial, Gender, Position,
   Specialization, Year_Start, Year_End, Employment_Status,
-  Batches_Advised, Sections_Advised, Birthday, Attended_2026_Reunion, Remarks }
+  Batches_Advised, Sections_Advised, Birthday, Attended_2026_Reunion, Remarks,
+  Email, Cellphone }   // admin-only — stored in DB, never shown in dashboard tables
 
 // Event (Memory Lane)
 { title, date, desc, photos: [base64DataURL, ...], created }
@@ -183,6 +185,8 @@ let _toastTimer;     // clearTimeout handle so rapid toasts don't race
 `updatePendingBadge()` sums all seven queues for the Settings tab badge.
 
 **Not PIN-protected (open to anyone):** Opening any Add or Edit modal, submitting Add/Edit forms (goes to pending), save display settings (`saveSettings`), backup/export downloads, self-registration submission.
+
+**Contact details privacy:** The Add/Edit modals for alumni and faculty include `Email` and `Cellphone` fields. These are stored in the record (Firestore + localStorage) and visible when editing, but are **never rendered** in the Alumni DB or Faculty dashboard tables. A yellow `.privacy-note` banner in each form informs submitters that contact details are for administrative use only and will not be visible to the public.
 
 **Change Admin PIN** uses its own modal (`openChgPin` / `doChgPin`) that requires entering the current PIN directly — it does not use `pinThen()`.
 

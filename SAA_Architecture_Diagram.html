@@ -774,14 +774,14 @@ window.addEventListener('load', () => {
         <td><code>portal/alumni</code> → <code>{records:[…]}</code></td>
         <td><code>saa_alumni</code></td>
         <td><code>saveDB()</code></td>
-        <td>321+ entries. Seeded from <code>ALUMNI_SEED</code> on first-ever install only.</td>
+        <td>321+ entries. Seeded from <code>ALUMNI_SEED</code> on first-ever install only. Each record includes <code>Email</code> and <code>Cellphone</code> fields (admin-only — stored but never rendered in the dashboard table).</td>
       </tr>
       <tr>
         <td>Faculty records</td>
         <td><code>portal/faculty</code> → <code>{records:[…]}</code></td>
         <td><code>saa_faculty</code></td>
         <td><code>saveFacDB()</code></td>
-        <td>15 entries. Backed up/restored separately — NOT included in the main alumni backup.</td>
+        <td>15 entries. Backed up/restored separately — NOT included in the main alumni backup. Each record includes <code>Email</code> and <code>Cellphone</code> fields (admin-only — stored but never rendered in the dashboard table).</td>
       </tr>
       <tr>
         <td>Memory Lane events</td>
@@ -884,6 +884,7 @@ window.addEventListener('load', () => {
         <div class="comp-row"><span class="comp-icon">✏️</span><span>Submit faculty edit for admin approval (Edit modal → pending edit queue)</span></div>
         <div class="comp-row"><span class="comp-icon">✏️</span><span>Submit event edit for admin approval (Edit modal → pending edit queue)</span></div>
         <div class="comp-row"><span class="comp-icon">💾</span><span>Save display settings (font size)</span></div>
+        <div class="comp-row"><span class="comp-icon">🔒</span><span>Enter Email &amp; Cellphone in Add/Edit forms — stored in records but <strong>never shown</strong> in dashboard tables (admin-only contact info)</span></div>
       </div>
     </div>
 
@@ -1046,7 +1047,7 @@ window.addEventListener('load', () => {
   </div>
 </div>
 
-<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v5.0 &nbsp;·&nbsp; May 2026</p>
+<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v6.0 &nbsp;·&nbsp; May 2026</p>
 
 </body>
 </html>
