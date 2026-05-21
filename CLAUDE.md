@@ -71,6 +71,16 @@ All HTML, CSS (in `<style>`), and JavaScript (in `<script>`) are in `index.html`
 - **Feedback card** (bottom, `flex:1` ≈ 1/3 of height) — independently scrollable list (`#feedbackList`, class `notices-list`). Live search via `#fbSearch` filters by name or message text in real time (`oninput="renderFeedbackList()"`).
 - Both cards have CSS class `notices-card` (`display:flex; flex-direction:column; min-height:0; margin-bottom:0`). When no results match a search term, a contextual "No … match your search." message is shown instead of the default "No … yet." message.
 
+**Settings page boxes (`.setting-group` cards, rendered in a CSS grid):**
+1. Database Backup & Restore
+2. Export & Import
+3. Display Settings
+4. Memory Lane Backup
+5. Admin PIN Protection
+6. Pending Approvals (`#pendingList`)
+7. Portal Information — school details and version stamp
+8. **Disclaimer** — four-paragraph static notice stating the site is an independent alumni initiative, not the school's official website, with IP/ownership acknowledgment and a contact prompt for content concerns
+
 ### Data Layer
 
 **Primary store: Firestore.** On load, `loadFromFirestore()` fetches all data from Firestore and syncs it into localStorage as a cache. If Firestore is unreachable, the app falls back to localStorage (or seed data on first visit). All writes go to both localStorage and Firestore in parallel — Firestore failures are non-fatal (`console.warn` only).
