@@ -901,7 +901,7 @@ window.addEventListener('load', () => {
      ══════════════════════════════════════════════ -->
 <div class="sequence" style="margin-top:24px;">
   <h2>PIN Access Control — Who Can Do What</h2>
-  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">Adding <em>and editing</em> records (alumni, faculty, events) is open to anyone — submissions go to a pending queue, not the live database. The Admin PIN gates approvals, deletions, and restores only. This mirrors the self-registration workflow: anyone can submit, only the admin can publish or apply changes.</p>
+  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">Adding <em>and editing</em> records (alumni, faculty, events) is open to anyone — submissions go to a pending queue, not the live database. The Admin PIN gates approvals, deletions, restores, backups, exports, and settings saves. This mirrors the self-registration workflow: anyone can submit, only the admin can publish, export, or apply changes.</p>
 
   <div style="display:flex;gap:20px;flex-wrap:wrap;">
 
@@ -909,8 +909,6 @@ window.addEventListener('load', () => {
       <div style="background:#f0fdf4;border:2px solid #43a047;border-radius:12px;padding:18px 20px;">
         <h3 style="font-size:0.82rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#1b5e20;margin-bottom:14px;">No PIN required — open to all</h3>
         <div class="comp-row"><span class="comp-icon">🔍</span><span>Browse, search, and filter all records</span></div>
-        <div class="comp-row"><span class="comp-icon">📥</span><span>Export alumni to CSV / Excel</span></div>
-        <div class="comp-row"><span class="comp-icon">💾</span><span>Backup databases to JSON</span></div>
         <div class="comp-row"><span class="comp-icon">📝</span><span>Submit alumni self-registration (Register button)</span></div>
         <div class="comp-row"><span class="comp-icon">➕</span><span>Submit new alumni record for admin approval (Add Record → pending queue)</span></div>
         <div class="comp-row"><span class="comp-icon">➕</span><span>Submit new faculty member for admin approval (Add Faculty → pending queue)</span></div>
@@ -920,7 +918,6 @@ window.addEventListener('load', () => {
         <div class="comp-row"><span class="comp-icon">✏️</span><span>Submit faculty edit for admin approval (Edit modal → pending edit queue)</span></div>
         <div class="comp-row"><span class="comp-icon">✏️</span><span>Submit event edit for admin approval (Edit modal → pending edit queue)</span></div>
         <div class="comp-row"><span class="comp-icon">✏️</span><span>Submit feedback edit for admin approval (Edit modal → pending edit queue)</span></div>
-        <div class="comp-row"><span class="comp-icon">💾</span><span>Save display settings (font size)</span></div>
         <div class="comp-row"><span class="comp-icon">🔒</span><span>Enter Email &amp; Cellphone in Add/Edit forms — stored in records but <strong>never shown</strong> in dashboard tables (admin-only contact info)</span></div>
       </div>
     </div>
@@ -941,6 +938,9 @@ window.addEventListener('load', () => {
         <div class="comp-row"><span class="comp-icon">🗑️</span><span>Delete Alumni / Faculty / Event / Feedback</span></div>
         <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Alumni JSON backup — overwrites alumni, events, settings (not faculty)</span></div>
         <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Faculty JSON backup — overwrites faculty records only</span></div>
+        <div class="comp-row"><span class="comp-icon">📥</span><span>Export alumni or faculty to CSV / Excel</span></div>
+        <div class="comp-row"><span class="comp-icon">💾</span><span>Download alumni, faculty, Memory Lane, or settings JSON backups</span></div>
+        <div class="comp-row"><span class="comp-icon">💾</span><span>Save display settings (font size)</span></div>
         <div class="comp-row"><span class="comp-icon">🔑</span><span>Change Admin PIN</span></div>
       </div>
     </div>
@@ -950,7 +950,7 @@ window.addEventListener('load', () => {
   <div style="margin-top:14px;padding:12px 16px;background:#e8f0fe;border-left:4px solid #4a80d4;border-radius:8px;font-size:0.82rem;color:#1a3a8a;line-height:1.6;">
     <strong>How the PIN works:</strong> The PIN is stored in <code>saa_admin_pin</code> in localStorage and synced to <code>portal/config</code> in Firestore. On startup, the Firestore PIN overwrites the local one. Falls back to default <code>aneza654457</code> if absent in both. When a PIN-protected action is triggered, a modal appears asking for the PIN. On success, the action proceeds and is written to both Firestore and localStorage.<br><br>
     <strong>Pending queue flow:</strong> Add forms (alumni, faculty, event, feedback) and Edit forms all write to pending queues — 9 queues total across <code>portal/pending_alumni</code>, <code>portal/pending_edit_alumni</code>, <code>portal/pending_faculty</code>, <code>portal/pending_edit_faculty</code>, <code>portal/pending_events</code>, <code>portal/pending_edit_events</code>, <code>portal/pending_feedback</code>, <code>portal/pending_edit_feedback</code>, and <code>portal/pending</code> (self-reg). Announcements bypass the pending queue — admin writes them directly (Notices tab, top panel). The Settings tab shows all nine queues with an aggregate badge count. Admin approves (PIN) → record moves to/updates the live database. Admin rejects (PIN) → record is discarded.<br><br>
-    <strong>Backup vs Restore:</strong> Downloading backups never requires the PIN (read-only). Restoring is PIN-protected because it overwrites stored data. Alumni restore (<code>restoreData()</code>) and Faculty restore (<code>restoreFaculty()</code>) are independent — each only overwrites its own dataset.
+    <strong>Backup &amp; Export:</strong> All backup downloads (alumni, faculty, Memory Lane, settings JSON) and CSV exports now require the admin PIN. Restoring is also PIN-protected because it overwrites stored data. Alumni restore (<code>restoreData()</code>) and Faculty restore (<code>restoreFaculty()</code>) are independent — each only overwrites its own dataset.
   </div>
 </div>
 
@@ -1087,7 +1087,7 @@ window.addEventListener('load', () => {
   </div>
 </div>
 
-<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v8.1 &nbsp;·&nbsp; May 2026</p>
+<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v8.2 &nbsp;·&nbsp; May 2026</p>
 
 </body>
 </html>

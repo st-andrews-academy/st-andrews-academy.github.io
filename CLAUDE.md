@@ -138,7 +138,7 @@ On first load, if Firestore has no data, `ALUMNI_SEED` and `FAC_SEED` are writte
 // Alumni
 { Student_Code, First_Name, Middle_Initial, Surname, Married_Surname,
   Section, Batch, Gender, Profession, Birthday, Marital_Status,
-  Children_Information, Deceased, Remarks,
+  Children_Information, Remarks,
   Email, Cellphone }   // admin-only — stored in DB, never shown in dashboard tables
 
 // Faculty
@@ -216,6 +216,8 @@ let editFeedbackIdx;     // -1 = add mode, ≥0 = edit mode for feedback modal
 - **Delete** alumni / faculty / event — `deleteStudentPin` / `deleteFacultyPin` / `deleteEventPin` → `pinThen`.
 - **Approve / Reject** any pending submission (alumni add, alumni edit, faculty add, faculty edit, event add, event edit, feedback add, feedback edit, self-registration) — all route through `pinThen`.
 - **Restore** alumni or faculty JSON backup — `pinThen(restoreData)` / `pinThen(restoreFaculty)`.
+- **Backup / Export** — `pinThen(backupData)`, `pinThen(backupFaculty)`, `pinThen(backupMemoryLane)`, `pinThen(backupSettings)`, `pinThen(exportCSV)`, `pinThen(exportFaculty)` — all download actions in Settings, Alumni, and Faculty toolbars.
+- **Save display settings** — `pinThen(saveSettings)`.
 
 **Pending Approvals (Settings tab):** Nine queues shown in `#pendingList`:
 1. Pending Alumni Additions (`saa_pending_alumni`) — `approvePendingAlumni` / `rejectPendingAlumni`
@@ -230,9 +232,9 @@ let editFeedbackIdx;     // -1 = add mode, ≥0 = edit mode for feedback modal
 
 `updatePendingBadge()` sums all nine queues for the Settings tab badge.
 
-**Not PIN-protected (open to anyone):** Opening any Add or Edit modal, submitting Add/Edit forms (goes to pending), save display settings (`saveSettings`), backup/export downloads, self-registration submission.
+**Not PIN-protected (open to anyone):** Opening any Add or Edit modal, submitting Add/Edit forms (goes to pending), self-registration submission, browsing/searching all records.
 
-**Contact details privacy:** The Add/Edit modals for alumni and faculty include `Email` and `Cellphone` fields. These are stored in the record (Firestore + localStorage) and visible when editing, but are **never rendered** in the Alumni DB or Faculty dashboard tables. A yellow `.privacy-note` banner in each form informs submitters that contact details are for administrative use only and will not be visible to the public.
+**Contact details privacy:** The Add/Edit modals for alumni and faculty include `Email` and `Cellphone` fields. These are stored in the record (Firestore + localStorage) and visible when editing, but are **never rendered** in the Alumni DB or Faculty dashboard tables. A yellow `.privacy-note` banner in each form reads: "Contact details (email & cellphone) and other personal information are for information purpose only, and shall not be used nor shared to the public. Please do not fill if you are not comfortable sharing it in this portal."
 
 **Change Admin PIN** uses its own modal (`openChgPin` / `doChgPin`) that requires entering the current PIN directly — it does not use `pinThen()`.
 
@@ -324,8 +326,8 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `savePendingEditAlumni(p)` | Save pending alumni edits to localStorage + `portal/pending_edit_alumni` |
 | `savePendingEditFaculty(p)` | Save pending faculty edits to localStorage + `portal/pending_edit_faculty` |
 | `savePendingEditEvents(p)` | Save pending event edits to localStorage + `portal/pending_edit_events` |
-| `backupData()` / `restoreData()` | JSON backup/restore (restore is PIN-protected) |
-| `exportCSV()` | Download alumni as CSV |
+| `backupData()` / `restoreData()` | JSON backup/restore (both PIN-protected) |
+| `exportCSV()` | Download alumni as CSV (PIN-protected) |
 | `toast(msg)` | Show a brief notification |
 | `dl(name, content, type)` | Trigger a file download |
 | `genCode(batch, sec)` | Auto-generate student code |
