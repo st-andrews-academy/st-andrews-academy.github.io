@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 St. Andrews Academy Alumni Portal — a single-file SPA for the Batch 1986 alumni of St. Andrews Academy. All logic, styles, seed data, and embedded images live in one file: **`index.html`**.
 
 **Live site:** https://st-andrews-academy.github.io  
-**Admin PIN default:** `aneza654457`
+**Admin PIN default:** encoded in source (`ADMIN_PIN_DEFAULT`)
 
 ## Running the App
 
@@ -31,7 +31,7 @@ rm -rf package.json package-lock.json node_modules my_test.mjs  # clean up
 - Wait for `#loadingOverlay` to be hidden before interacting: `page.waitForSelector('#loadingOverlay', { state: 'hidden' })`.
 - Modals are closed with explicit Cancel buttons, not Escape — use `page.click('#modalId button:has-text("Cancel")')`.
 - After cancelling the PIN modal, the parent modal is still open — close it separately.
-- The admin PIN for testing is `aneza654457` (default); read it from `ADMIN_PIN_DEFAULT` in the source.
+- The admin PIN for testing is the decoded value of `ADMIN_PIN_DEFAULT` in the source (`atob(...)`).
 
 **Live URLs under test:**
 
