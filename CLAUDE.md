@@ -94,17 +94,17 @@ Firebase SDK v10.12.0 compat is loaded via two CDN `<script>` tags (lines 173–
 | `portal/alumni` | `{ records: [...] }` — full alumni array |
 | `portal/faculty` | `{ records: [...] }` — full faculty array |
 | `portal/config` | `{ adminPin: "..." }` — admin PIN |
-| `portal/pending` | `{ records: [...] }` — self-registration submissions |
-| `portal/pending_alumni` | `{ records: [...] }` — pending alumni add submissions |
-| `portal/pending_faculty` | `{ records: [...] }` — pending faculty add submissions |
-| `portal/pending_events` | `{ records: [...] }` — pending event add submissions |
-| `portal/pending_edit_alumni` | `{ records: [...] }` — pending alumni edit submissions |
-| `portal/pending_edit_faculty` | `{ records: [...] }` — pending faculty edit submissions |
-| `portal/pending_edit_events` | `{ records: [...] }` — pending event edit submissions |
+| `portal/pending_alumni_registration` | `{ records: [...] }` — self-registration submissions |
+| `portal/pending_alumni_add` | `{ records: [...] }` — pending alumni add submissions |
+| `portal/pending_alumni_edit` | `{ records: [...] }` — pending alumni edit submissions |
+| `portal/pending_faculty_add` | `{ records: [...] }` — pending faculty add submissions |
+| `portal/pending_faculty_edit` | `{ records: [...] }` — pending faculty edit submissions |
+| `portal/pending_event_add` | `{ records: [...] }` — pending event add submissions |
+| `portal/pending_event_edit` | `{ records: [...] }` — pending event edit submissions |
+| `portal/pending_feedback_add` | `{ records: [...] }` — pending feedback add submissions |
+| `portal/pending_feedback_edit` | `{ records: [...] }` — pending feedback edit submissions |
 | `portal/announcements` | `{ records: [...] }` — announcements (admin-only add/edit/delete) |
 | `portal/feedback` | `{ records: [...] }` — approved feedback entries |
-| `portal/pending_feedback` | `{ records: [...] }` — pending feedback add submissions |
-| `portal/pending_edit_feedback` | `{ records: [...] }` — pending feedback edit submissions |
 | `events/{evId}` | Individual event doc; `evId` is `Date.now().toString()` |
 
 Events are stored as individual Firestore documents (not in a single array doc) and carry an `_id` field matching their document ID. `saveEvents()` only writes to localStorage; Firestore writes for events are done explicitly at creation (`fstore.collection('events').doc(evId).set(ev)`), edit (`fstore.collection('events').doc(ev._id).set(ev)`), and deletion (`fstore.collection('events').doc(ev._id).delete()`).
@@ -117,17 +117,17 @@ Events are stored as individual Firestore documents (not in a single array doc) 
 | `saa_faculty` | Faculty records array |
 | `saa_events` | Memory Lane events array |
 | `saa_settings` | `{ fontSize }` |
-| `saa_pending_reg` | Self-registration submissions array |
-| `saa_pending_alumni` | Pending alumni add submissions array |
-| `saa_pending_faculty` | Pending faculty add submissions array |
-| `saa_pending_events` | Pending event add submissions array |
-| `saa_pending_edit_alumni` | Pending alumni edit submissions array |
-| `saa_pending_edit_faculty` | Pending faculty edit submissions array |
-| `saa_pending_edit_events` | Pending event edit submissions array |
+| `saa_pending_alumni_registration` | Self-registration submissions array |
+| `saa_pending_alumni_add` | Pending alumni add submissions array |
+| `saa_pending_alumni_edit` | Pending alumni edit submissions array |
+| `saa_pending_faculty_add` | Pending faculty add submissions array |
+| `saa_pending_faculty_edit` | Pending faculty edit submissions array |
+| `saa_pending_event_add` | Pending event add submissions array |
+| `saa_pending_event_edit` | Pending event edit submissions array |
+| `saa_pending_feedback_add` | Pending feedback add submissions array |
+| `saa_pending_feedback_edit` | Pending feedback edit submissions array |
 | `saa_announcements` | Announcements array |
 | `saa_feedback` | Approved feedback array |
-| `saa_pending_feedback` | Pending feedback add submissions array |
-| `saa_pending_edit_feedback` | Pending feedback edit submissions array |
 | `saa_admin_pin` | Custom PIN (falls back to default if absent) |
 
 On first load, if Firestore has no data, `ALUMNI_SEED` and `FAC_SEED` are written to both Firestore and localStorage. Existing users see Firestore data on every load, so seed changes in the file are **ignored** for existing users unless Firestore data is cleared.
@@ -220,15 +220,15 @@ let editFeedbackIdx;     // -1 = add mode, ≥0 = edit mode for feedback modal
 - **Save display settings** — `pinThen(saveSettings)`.
 
 **Pending Approvals (Settings tab):** Nine queues shown in `#pendingList`:
-1. Pending Alumni Additions (`saa_pending_alumni`) — `approvePendingAlumni` / `rejectPendingAlumni`
-2. Pending Alumni Edits (`saa_pending_edit_alumni`) — `approvePendingEditAlumni` / `rejectPendingEditAlumni`
-3. Pending Faculty Additions (`saa_pending_faculty`) — `approvePendingFaculty` / `rejectPendingFaculty`
-4. Pending Faculty Edits (`saa_pending_edit_faculty`) — `approvePendingEditFaculty` / `rejectPendingEditFaculty`
-5. Pending Events (`saa_pending_events`) — `approvePendingEvent` / `rejectPendingEvent`
-6. Pending Event Edits (`saa_pending_edit_events`) — `approvePendingEditEvent` / `rejectPendingEditEvent`
-7. Pending Feedback (`saa_pending_feedback`) — `approvePendingFeedback` / `rejectPendingFeedback`
-8. Pending Feedback Edits (`saa_pending_edit_feedback`) — `approvePendingEditFeedback` / `rejectPendingEditFeedback`
-9. Self-Registrations (`saa_pending_reg`) — `approvePending` / `rejectPending`
+1. Pending Alumni Additions (`saa_pending_alumni_add`) — `approvePendingAlumni` / `rejectPendingAlumni`
+2. Pending Alumni Edits (`saa_pending_alumni_edit`) — `approvePendingEditAlumni` / `rejectPendingEditAlumni`
+3. Pending Faculty Additions (`saa_pending_faculty_add`) — `approvePendingFaculty` / `rejectPendingFaculty`
+4. Pending Faculty Edits (`saa_pending_faculty_edit`) — `approvePendingEditFaculty` / `rejectPendingEditFaculty`
+5. Pending Events (`saa_pending_event_add`) — `approvePendingEvent` / `rejectPendingEvent`
+6. Pending Event Edits (`saa_pending_event_edit`) — `approvePendingEditEvent` / `rejectPendingEditEvent`
+7. Pending Feedback (`saa_pending_feedback_add`) — `approvePendingFeedback` / `rejectPendingFeedback`
+8. Pending Feedback Edits (`saa_pending_feedback_edit`) — `approvePendingEditFeedback` / `rejectPendingEditFeedback`
+9. Self-Registrations (`saa_pending_alumni_registration`) — `approvePending` / `rejectPending`
 
 `updatePendingBadge()` sums all nine queues for the Settings tab badge.
 
