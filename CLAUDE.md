@@ -333,6 +333,6 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `genCode(batch, sec)` | Auto-generate student code |
 | `loadFromFirestore()` | Fetch all data (incl. all 9 pending queues, 15 Firestore docs total) from Firestore on startup; falls back to localStorage |
 | `compressImage(file, maxW, quality)` | Client-side canvas compress before storing photo as base64 (default 1200px, 0.72 quality) |
-| `changeFont(d)` | Increment/decrement font size (range 10–24px, default 15); writes to `--fs` CSS custom property and localStorage |
+| `changeFont(d)` | Increment/decrement font size (range 10–24px, default 18); writes to `--fs` CSS custom property and localStorage |
 | `openLightbox(src)` | Open full-screen photo lightbox |
 | `backupFaculty()` | Download faculty JSON backup |
