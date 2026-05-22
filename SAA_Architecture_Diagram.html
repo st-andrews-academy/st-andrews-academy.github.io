@@ -799,50 +799,50 @@ window.addEventListener('load', () => {
       </tr>
       <tr>
         <td>Self-registrations</td>
-        <td><code>portal/pending</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_reg</code></td>
+        <td><code>portal/pending_alumni_registration</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_alumni_registration</code></td>
         <td><code>savePending()</code></td>
         <td>Alumni self-submitted via Register button. Cleared when approved or rejected.</td>
       </tr>
       <tr>
         <td>Pending alumni adds</td>
-        <td><code>portal/pending_alumni</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_alumni</code></td>
+        <td><code>portal/pending_alumni_add</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_alumni_add</code></td>
         <td><code>savePendingAlumni()</code></td>
         <td>Submitted via Add Record form (no PIN). Admin approves → goes to <code>portal/alumni</code>.</td>
       </tr>
       <tr>
-        <td>Pending faculty adds</td>
-        <td><code>portal/pending_faculty</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_faculty</code></td>
-        <td><code>savePendingFaculty()</code></td>
-        <td>Submitted via Add Faculty form (no PIN). Admin approves → goes to <code>portal/faculty</code>.</td>
-      </tr>
-      <tr>
-        <td>Pending event adds</td>
-        <td><code>portal/pending_events</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_events</code></td>
-        <td><code>savePendingEvents()</code></td>
-        <td>Submitted via Add Event form (no PIN). Admin approves → published as <code>events/{evId}</code>.</td>
-      </tr>
-      <tr>
         <td>Pending alumni edits</td>
-        <td><code>portal/pending_edit_alumni</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_edit_alumni</code></td>
+        <td><code>portal/pending_alumni_edit</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_alumni_edit</code></td>
         <td><code>savePendingEditAlumni()</code></td>
         <td>Submitted via Edit Alumni form (no PIN). Record stores <code>_originalCode</code> (Student_Code) to identify the target. Admin approves → replaces the matching record in <code>portal/alumni</code>.</td>
       </tr>
       <tr>
+        <td>Pending faculty adds</td>
+        <td><code>portal/pending_faculty_add</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_faculty_add</code></td>
+        <td><code>savePendingFaculty()</code></td>
+        <td>Submitted via Add Faculty form (no PIN). Admin approves → goes to <code>portal/faculty</code>.</td>
+      </tr>
+      <tr>
         <td>Pending faculty edits</td>
-        <td><code>portal/pending_edit_faculty</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_edit_faculty</code></td>
+        <td><code>portal/pending_faculty_edit</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_faculty_edit</code></td>
         <td><code>savePendingEditFaculty()</code></td>
         <td>Submitted via Edit Faculty form (no PIN). Record stores <code>_originalCode</code> (Faculty_Code). Admin approves → replaces the matching record in <code>portal/faculty</code>.</td>
       </tr>
       <tr>
+        <td>Pending event adds</td>
+        <td><code>portal/pending_event_add</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_event_add</code></td>
+        <td><code>savePendingEvents()</code></td>
+        <td>Submitted via Add Event form (no PIN). Admin approves → published as <code>events/{evId}</code>.</td>
+      </tr>
+      <tr>
         <td>Pending event edits</td>
-        <td><code>portal/pending_edit_events</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_edit_events</code></td>
+        <td><code>portal/pending_event_edit</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_event_edit</code></td>
         <td><code>savePendingEditEvents()</code></td>
         <td>Submitted via Edit Event form (no PIN). Record stores <code>_originalId</code> (event <code>_id</code>). Admin approves → updates the matching <code>events/{evId}</code> Firestore doc.</td>
       </tr>
@@ -862,15 +862,15 @@ window.addEventListener('load', () => {
       </tr>
       <tr>
         <td>Pending feedback adds</td>
-        <td><code>portal/pending_feedback</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_feedback</code></td>
+        <td><code>portal/pending_feedback_add</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_feedback_add</code></td>
         <td><code>savePendingFeedback()</code></td>
         <td>Submitted via Feedback form (no PIN). Admin approves → goes to <code>portal/feedback</code>.</td>
       </tr>
       <tr>
         <td>Pending feedback edits</td>
-        <td><code>portal/pending_edit_feedback</code> → <code>{records:[…]}</code></td>
-        <td><code>saa_pending_edit_feedback</code></td>
+        <td><code>portal/pending_feedback_edit</code> → <code>{records:[…]}</code></td>
+        <td><code>saa_pending_feedback_edit</code></td>
         <td><code>savePendingEditFeedback()</code></td>
         <td>Submitted via Edit Feedback form (no PIN). Record stores <code>_originalId</code> (feedback <code>_id</code>). Admin approves → updates the matching record in <code>portal/feedback</code>.</td>
       </tr>
@@ -949,7 +949,7 @@ window.addEventListener('load', () => {
 
   <div style="margin-top:14px;padding:12px 16px;background:#e8f0fe;border-left:4px solid #4a80d4;border-radius:8px;font-size:0.82rem;color:#1a3a8a;line-height:1.6;">
     <strong>How the PIN works:</strong> The PIN is stored in <code>saa_admin_pin</code> in localStorage and synced to <code>portal/config</code> in Firestore. On startup, the Firestore PIN overwrites the local one. Falls back to default <code>aneza654457</code> if absent in both. When a PIN-protected action is triggered, a modal appears asking for the PIN. On success, the action proceeds and is written to both Firestore and localStorage.<br><br>
-    <strong>Pending queue flow:</strong> Add forms (alumni, faculty, event, feedback) and Edit forms all write to pending queues — 9 queues total across <code>portal/pending_alumni</code>, <code>portal/pending_edit_alumni</code>, <code>portal/pending_faculty</code>, <code>portal/pending_edit_faculty</code>, <code>portal/pending_events</code>, <code>portal/pending_edit_events</code>, <code>portal/pending_feedback</code>, <code>portal/pending_edit_feedback</code>, and <code>portal/pending</code> (self-reg). Announcements bypass the pending queue — admin writes them directly (Notices tab, top panel). The Settings tab shows all nine queues with an aggregate badge count. Admin approves (PIN) → record moves to/updates the live database. Admin rejects (PIN) → record is discarded.<br><br>
+    <strong>Pending queue flow:</strong> Add forms (alumni, faculty, event, feedback) and Edit forms all write to pending queues — 9 queues total: <code>portal/pending_alumni_registration</code> (self-reg), <code>portal/pending_alumni_add</code>, <code>portal/pending_alumni_edit</code>, <code>portal/pending_faculty_add</code>, <code>portal/pending_faculty_edit</code>, <code>portal/pending_event_add</code>, <code>portal/pending_event_edit</code>, <code>portal/pending_feedback_add</code>, and <code>portal/pending_feedback_edit</code>. Announcements bypass the pending queue — admin writes them directly (Notices tab, top panel). The Settings tab shows all nine queues with an aggregate badge count. Admin approves (PIN) → record moves to/updates the live database. Admin rejects (PIN) → record is discarded.<br><br>
     <strong>Backup &amp; Export:</strong> All backup downloads (alumni, faculty, Memory Lane, settings JSON) and CSV exports now require the admin PIN. Restoring is also PIN-protected because it overwrites stored data. Alumni restore (<code>restoreData()</code>) and Faculty restore (<code>restoreFaculty()</code>) are independent — each only overwrites its own dataset.
   </div>
 </div>
@@ -1087,7 +1087,7 @@ window.addEventListener('load', () => {
   </div>
 </div>
 
-<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v8.2 &nbsp;·&nbsp; May 2026</p>
+<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v8.3 &nbsp;·&nbsp; May 2026</p>
 
 </body>
 </html>
