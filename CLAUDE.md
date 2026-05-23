@@ -9,6 +9,11 @@ St. Andrews Academy Alumni Portal — a single-file SPA for the Batch 1986 alumn
 **Live site:** https://st-andrews-academy.github.io  
 **Admin PIN default:** encoded in source (`ADMIN_PIN_DEFAULT`)
 
+**Repo files:**
+- `index.html` — the entire portal (only file that matters for deployment)
+- `SAA_Architecture_Diagram.html` — standalone architecture diagram, also deployed to GitHub Pages; draw SVG arrows on load via JS
+- `Files/` — gitignored directory for local backup exports (JSON, CSV); not part of the codebase
+
 ## Running the App
 
 No build step. Open `index.html` directly in a browser, or deploy to GitHub Pages by uploading the file to the `st-andrews-academy/st-andrews-academy.github.io` repository (goes live in ~2-5 minutes).
@@ -198,17 +203,17 @@ let editFeedbackIdx;     // -1 = add mode, ≥0 = edit mode for feedback modal
 `pinThen(fn)` shows the PIN modal and calls `fn()` on success. To add a new PIN-protected action, wrap it: `pinThen(() => yourAction())`.
 
 **Add → Pending queue (no PIN, open to anyone):**
-- **Add alumni** — `submitPendingAlumni()` saves to `saa_pending_alumni` / `portal/pending_alumni` for admin approval.
-- **Add faculty** — `submitPendingFaculty()` saves to `saa_pending_faculty` / `portal/pending_faculty` for admin approval.
-- **Add event** — `submitPendingEvent()` saves to `saa_pending_events` / `portal/pending_events` for admin approval.
-- **Submit feedback** — `submitPendingFeedback()` saves to `saa_pending_feedback` / `portal/pending_feedback` for admin approval.
+- **Add alumni** — `submitPendingAlumni()` saves to `saa_pending_alumni_add` / `portal/pending_alumni_add` for admin approval.
+- **Add faculty** — `submitPendingFaculty()` saves to `saa_pending_faculty_add` / `portal/pending_faculty_add` for admin approval.
+- **Add event** — `submitPendingEvent()` saves to `saa_pending_event_add` / `portal/pending_event_add` for admin approval.
+- **Submit feedback** — `submitPendingFeedback()` saves to `saa_pending_feedback_add` / `portal/pending_feedback_add` for admin approval.
 - The Save button in add modals shows "📝 Submit for Approval" (no PIN badge). `saveStudentWithPin` / `saveFacultyWithPin` / `saveEventOrSubmit` / `saveFeedbackOrSubmit` route to the submit path when in add mode.
 
 **Edit → Pending queue (no PIN, open to anyone):**
-- **Edit alumni** — `editStudentPin(idx)` opens the modal directly (no PIN). Save calls `submitPendingEditAlumni()` which saves to `saa_pending_edit_alumni` / `portal/pending_edit_alumni`. Save button shows "📝 Submit Edit for Approval". The pending record stores `_originalCode` (Student_Code) and `_displayName` so admin can identify which record is being edited.
-- **Edit faculty** — `editFacultyPin(idx)` opens the modal directly (no PIN). Save calls `submitPendingEditFaculty()` → `saa_pending_edit_faculty` / `portal/pending_edit_faculty`. Same pattern as alumni.
-- **Edit event** — `openEditEventModal(i)` opens freely. Save calls `submitPendingEditEvent()` → `saa_pending_edit_events` / `portal/pending_edit_events`. Pending record stores `_originalId` (event `_id`) and `_displayName`.
-- **Edit feedback** — `openEditFeedbackModal(idx)` opens freely. Save calls `submitPendingEditFeedback()` → `saa_pending_edit_feedback` / `portal/pending_edit_feedback`. Pending record stores `_originalId` (feedback `_id`) and `_displayName`.
+- **Edit alumni** — `editStudentPin(idx)` opens the modal directly (no PIN). Save calls `submitPendingEditAlumni()` which saves to `saa_pending_alumni_edit` / `portal/pending_alumni_edit`. Save button shows "📝 Submit Edit for Approval". The pending record stores `_originalCode` (Student_Code) and `_displayName` so admin can identify which record is being edited.
+- **Edit faculty** — `editFacultyPin(idx)` opens the modal directly (no PIN). Save calls `submitPendingEditFaculty()` → `saa_pending_faculty_edit` / `portal/pending_faculty_edit`. Same pattern as alumni.
+- **Edit event** — `openEditEventModal(i)` opens freely. Save calls `submitPendingEditEvent()` → `saa_pending_event_edit` / `portal/pending_event_edit`. Pending record stores `_originalId` (event `_id`) and `_displayName`.
+- **Edit feedback** — `openEditFeedbackModal(idx)` opens freely. Save calls `submitPendingEditFeedback()` → `saa_pending_feedback_edit` / `portal/pending_feedback_edit`. Pending record stores `_originalId` (feedback `_id`) and `_displayName`.
 
 **PIN required — Admin only:**
 - **Add / Edit / Delete announcements** — `openAddAnnouncementModal()` / `openEditAnnouncementModal(idx)` / `deleteAnnouncement(idx)` — all wrapped in `pinThen`. Announcements are written directly (no pending queue).
@@ -313,19 +318,19 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `submitPendingEditFeedback()` | Submit feedback edit to pending edit queue (no PIN) — stores `_originalId` + `_displayName` |
 | `deleteFeedbackPin(idx)` | Delete approved feedback (PIN-protected) |
 | `saveFeedbackDB(f)` | Persist approved feedback to localStorage + `portal/feedback` |
-| `savePendingFeedback(p)` | Persist pending feedback adds to localStorage + `portal/pending_feedback` |
-| `savePendingEditFeedback(p)` | Persist pending feedback edits to localStorage + `portal/pending_edit_feedback` |
+| `savePendingFeedback(p)` | Persist pending feedback adds to localStorage + `portal/pending_feedback_add` |
+| `savePendingEditFeedback(p)` | Persist pending feedback edits to localStorage + `portal/pending_feedback_edit` |
 | `approvePendingFeedback(i)` / `rejectPendingFeedback(i)` | Approve/reject pending feedback add (PIN-protected) |
 | `approvePendingEditFeedback(i)` / `rejectPendingEditFeedback(i)` | Approve/reject pending feedback edit — finds by `_id` and updates `feedbackDB` (PIN-protected) |
 | `renderPending()` | Render all 9 pending queues in `#pendingList` (Settings tab) |
 | `updatePendingBadge()` | Sum all 9 pending queues for the Settings tab badge count |
-| `savePending(p)` | Save self-registrations to localStorage + `portal/pending` |
-| `savePendingAlumni(p)` | Save pending alumni adds to localStorage + `portal/pending_alumni` |
-| `savePendingFaculty(p)` | Save pending faculty adds to localStorage + `portal/pending_faculty` |
-| `savePendingEvents(p)` | Save pending event adds to localStorage + `portal/pending_events` |
-| `savePendingEditAlumni(p)` | Save pending alumni edits to localStorage + `portal/pending_edit_alumni` |
-| `savePendingEditFaculty(p)` | Save pending faculty edits to localStorage + `portal/pending_edit_faculty` |
-| `savePendingEditEvents(p)` | Save pending event edits to localStorage + `portal/pending_edit_events` |
+| `savePending(p)` | Save self-registrations to localStorage + `portal/pending_alumni_registration` |
+| `savePendingAlumni(p)` | Save pending alumni adds to localStorage + `portal/pending_alumni_add` |
+| `savePendingFaculty(p)` | Save pending faculty adds to localStorage + `portal/pending_faculty_add` |
+| `savePendingEvents(p)` | Save pending event adds to localStorage + `portal/pending_event_add` |
+| `savePendingEditAlumni(p)` | Save pending alumni edits to localStorage + `portal/pending_alumni_edit` |
+| `savePendingEditFaculty(p)` | Save pending faculty edits to localStorage + `portal/pending_faculty_edit` |
+| `savePendingEditEvents(p)` | Save pending event edits to localStorage + `portal/pending_event_edit` |
 | `backupData()` / `restoreData()` | JSON backup/restore (both PIN-protected) |
 | `exportCSV()` | Download alumni as CSV (PIN-protected) |
 | `toast(msg)` | Show a brief notification |

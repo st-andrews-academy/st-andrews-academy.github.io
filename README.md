@@ -23,14 +23,14 @@
 
 ### Key Capabilities
 - 📝 **Alumni Registration** button always visible on top nav — public self-registration
-- ⏳ **Pending Approvals** — registrations queue in Settings for admin review (PIN-protected)
-- 🔐 **PIN Protection** on all write actions (Add, Edit, Delete, Restore, Approve/Reject)
+- ⏳ **Pending Approvals** — Add/Edit submissions go to a pending queue; admin reviews and approves (PIN-protected)
+- 🔐 **PIN Protection** on admin actions (Approve/Reject, Delete, Restore, Backup/Export, Change PIN)
 - 📥 **Export to CSV** — Excel-compatible export of full alumni database
 - 💾 **JSON Backup & Restore** — for alumni, faculty, events and settings
 - 🔎 **Filter & Sort** on all database columns
 - 🖼️ **Photo Lightbox** — click any photo to enlarge
 - 📱 **Mobile-friendly** — responsive design for phones and tablets
-- 🔠 **Font size controls** (A+ / A−) — size 10 to 24, default 15
+- 🔠 **Font size controls** (A+ / A−) — size 10 to 24, default 18
 
 ---
 
@@ -50,7 +50,8 @@
 ## 🔐 Admin PIN
 
 Default PIN is pre-set. Change it anytime via **Settings → Change Admin PIN**.  
-Protected actions: Add, Edit, Delete, Restore, Import, Approve/Reject registrations.
+Protected actions: Approve/Reject pending submissions, Delete, Restore, Backup/Export, Change PIN.  
+Adding and editing records is open to anyone — submissions go to a pending queue for admin review.
 
 ---
 
@@ -88,6 +89,7 @@ To update the portal:
 | File | Description |
 |------|-------------|
 | `index.html` | Complete self-contained portal — all data, photos, styles and scripts embedded |
+| `SAA_Architecture_Diagram.html` | Standalone architecture diagram — also deployed to GitHub Pages |
 | `README.md` | This documentation file |
 
 ---
