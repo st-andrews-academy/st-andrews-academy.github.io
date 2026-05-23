@@ -95,7 +95,7 @@ All dynamic HTML rendering uses `escapeHtml(s)` (defined near the top of the `<s
 
 ### Data Layer
 
-**Primary store: Firestore.** On load, `loadFromFirestore()` fetches all data from Firestore and syncs it into localStorage as a cache. If Firestore is unreachable, the app falls back to localStorage (or seed data on first visit). All writes go to both localStorage and Firestore in parallel — Firestore failures are non-fatal (`console.warn` only).
+**Primary store: Firestore.** On load, `loadFromFirestore()` fetches all data from Firestore and syncs it into localStorage as a cache. Firebase is the sole source of truth — every page load fetches fresh from Firestore and overwrites localStorage before the UI renders. If Firestore fails to load entirely, a persistent red offline banner appears and all writes are blocked via the `_firestoreOnline` flag + `_requireFirestore()` guard (added to every write entry point). Firestore write failures surface a debounced user-visible toast via `_firestoreWarn()` instead of failing silently.
 
 Firebase SDK v10.12.0 compat is loaded via two CDN `<script>` tags (lines 173–174). The global `fstore` variable holds the Firestore instance.
 
@@ -141,6 +141,32 @@ Events are stored as individual Firestore documents (not in a single array doc) 
 | `saa_announcements` | Announcements array |
 | `saa_feedback` | Approved feedback array |
 | `saa_admin_pin` | Custom PIN (falls back to default if absent) |
+
+**Firestore Security Rules** (must be set in Firebase Console → Firestore Database → Rules):
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /events/{evId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    match /portal/{docId} {
+      allow read: if true;
+      allow write: if docId in [
+        'pending_alumni_registration', 'pending_alumni_add', 'pending_alumni_edit',
+        'pending_faculty_add', 'pending_faculty_edit',
+        'pending_event_add', 'pending_event_edit',
+        'pending_feedback_add', 'pending_feedback_edit'
+      ];
+      allow write: if docId in ['alumni', 'faculty', 'config', 'announcements', 'feedback'];
+    }
+  }
+}
+```
+
+> **Critical:** `loadFromFirestore()` reads all 15 Firestore docs in a single `Promise.all`. If any one read is denied by the rules, the entire load fails and the app shows the offline banner. The rules must allow `read: if true` for all portal documents — including `portal/config` and all 9 pending queue docs. Restricting reads on any of those documents breaks the app entirely.
 
 On first load, if Firestore has no data, `ALUMNI_SEED` and `FAC_SEED` are written to both Firestore and localStorage. Existing users see Firestore data on every load, so seed changes in the file are **ignored** for existing users unless Firestore data is cleared.
 
@@ -199,6 +225,8 @@ let pendingPhotos;   // File[] accumulated across multiple file-picker opens
 let existingPhotoUrls; // base64[] of photos already saved (edit mode only)
 let _pendingObjectUrls; // object URLs created for photo thumbnails — revoked on each redraw and on modal close
 let _toastTimer;     // clearTimeout handle so rapid toasts don't race
+let _fsWarnTimer;    // debounce handle for Firestore write-failure toasts (400ms)
+let _firestoreOnline; // true only after a successful loadFromFirestore(); gates all writes via _requireFirestore()
 let announcements;   // Announcements array (Notices tab)
 let feedbackDB;      // Approved feedback array (Notices tab)
 let editAnnouncementIdx; // -1 = add mode, ≥0 = edit mode for announcement modal

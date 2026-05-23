@@ -61,17 +61,19 @@ Adding and editing records is open to anyone — submissions go to a pending que
 
 ## 💾 Data Storage & Backup
 
-This portal uses **Firebase Firestore** as its live database, with browser localStorage as a fallback cache. All changes made by any user are saved to Firestore in real time and visible to all other users on their next page load.
+This portal uses **Firebase Firestore** as its live database, with browser localStorage as a read cache only. Every page load fetches fresh data from Firestore and overwrites localStorage — Firestore is the sole source of truth. If Firebase is unreachable on load, a persistent red offline banner appears and all writes are blocked until the user reloads successfully.
 
 | Storage | How it works |
 |---------|-------------|
 | **Firestore (primary)** | All edits sync to the cloud automatically — shared across all users |
-| **Browser localStorage** | Local cache; used as fallback if Firestore is unreachable |
+| **Browser localStorage** | Local read cache only; refreshed from Firestore on every page load |
 | **JSON Backup** | Download via Settings or Alumni DB — full offline snapshot |
 | **CSV Export** | Excel-compatible export of alumni records |
 | **Memory Lane Backup** | Downloads all events and photos as JSON |
 
 > **Note:** Because data lives in Firestore, editing on one device is immediately reflected for everyone. You no longer need to re-upload `index.html` to share data changes — only re-upload when you need to update the app itself (new features, seed data for fresh installs, etc.).
+
+> **Firebase Rules:** The Firestore security rules must allow `read: if true` for all portal documents (including `portal/config` and all 9 pending queue docs). The app reads all 15 Firestore documents in a single batch on startup — if any one read is denied, the entire load fails and the offline banner appears.
 
 ---
 

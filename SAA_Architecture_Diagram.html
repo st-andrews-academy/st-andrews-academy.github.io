@@ -483,7 +483,7 @@
       <div class="flow-num bg-orange">④</div>
       <div class="flow-text">
         <strong>Firestore → Browser &nbsp;(read on startup)</strong>
-        On every page load, <code>loadFromFirestore()</code> fetches 15 Firestore docs in parallel: alumni, faculty, events, config, announcements, approved feedback, and all 9 pending queues (adds + edits for alumni/faculty/events/feedback, plus self-registrations). This is the <strong>live shared data</strong> — the same data every user sees. If Firestore is unreachable, the browser falls back to its localStorage cache.
+        On every page load, <code>loadFromFirestore()</code> fetches 15 Firestore docs in parallel: alumni, faculty, events, config, announcements, approved feedback, and all 9 pending queues (adds + edits for alumni/faculty/events/feedback, plus self-registrations). This is the <strong>live shared data</strong> — the same data every user sees. Firestore is the sole source of truth; localStorage is overwritten on every successful load. If Firestore is unreachable, a persistent red offline banner appears and all writes are blocked until the page is reloaded successfully.
       </div>
     </div>
 
@@ -491,7 +491,7 @@
       <div class="flow-num bg-orange">⑤</div>
       <div class="flow-text">
         <strong>Browser → Firestore &nbsp;(write on every change)</strong>
-        When a user adds, edits, or deletes records, the change is written to Firestore via <code>saveDB()</code>, <code>saveFacDB()</code>, <code>savePending()</code>, or individual event writes. Firestore failures are non-fatal — a <code>console.warn</code> is logged and the local change still persists.
+        When a user adds, edits, or deletes records, the change is written to Firestore via <code>saveDB()</code>, <code>saveFacDB()</code>, <code>savePending()</code>, or individual event writes. Firestore write failures surface a debounced toast warning via <code>_firestoreWarn()</code>. All write functions are guarded by <code>_requireFirestore()</code> — if Firebase failed to load, writes are blocked entirely to prevent localStorage-only changes that would be lost on the next successful Firestore sync.
       </div>
     </div>
 
@@ -539,7 +539,7 @@
       </div>
       <div class="step">
         <div class="step-dot bg-dark">6</div>
-        <div class="step-text"><strong>Firestore offline:</strong> falls back to localStorage cache. If cache is also empty, seeds from <code>ALUMNI_SEED</code>.</div>
+        <div class="step-text"><strong>Firestore offline:</strong> persistent red offline banner appears, all writes are blocked. App shows last-known data from localStorage cache for browsing only. User must reload when connection is restored.</div>
       </div>
     </div>
 
@@ -564,7 +564,7 @@
       </div>
       <div class="step">
         <div class="step-dot bg-green">5</div>
-        <div class="step-text">Toast notification: "Saved!" — user sees no delay. Firestore failure is logged silently, local change is preserved.</div>
+        <div class="step-text">Toast notification: "Saved!" — user sees no delay. Firestore write failure shows a warning toast via <code>_firestoreWarn()</code>. If Firestore was unreachable on load, the write is blocked entirely by <code>_requireFirestore()</code>.</div>
       </div>
     </div>
 
@@ -891,7 +891,8 @@ window.addEventListener('load', () => {
     </tbody>
   </table>
   <div style="margin-top:14px;padding:12px 16px;background:#fff3e0;border-left:4px solid #f57c00;border-radius:8px;font-size:0.82rem;color:#bf360c;line-height:1.6;">
-    <strong>Important:</strong> Firestore is the single source of truth. Changes on one device are reflected for all users on their next page load. localStorage is a cache — it is refreshed from Firestore every time the page loads. JSON backup/restore files are now secondary (useful for offline recovery or migrating data).
+    <strong>Important:</strong> Firestore is the single source of truth. Changes on one device are reflected for all users on their next page load. localStorage is a read cache — it is overwritten from Firestore on every successful load. JSON backup/restore files are secondary (useful for offline recovery or migrating data).<br><br>
+    <strong>Firestore Security Rules requirement:</strong> <code>loadFromFirestore()</code> reads all 15 documents in a single <code>Promise.all</code>. If any one read is denied, the entire load fails and the offline banner appears. Rules must set <code>allow read: if true</code> for all portal documents — including <code>portal/config</code> and all 9 pending queue docs. Write rules remain restricted: pending queues allow public writes; core data (<code>alumni</code>, <code>faculty</code>, <code>config</code>, <code>announcements</code>, <code>feedback</code>) allow app writes only.
   </div>
 </div>
 
