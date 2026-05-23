@@ -81,14 +81,17 @@ All dynamic HTML rendering uses `escapeHtml(s)` (defined near the top of the `<s
 - Both cards have CSS class `notices-card` (`display:flex; flex-direction:column; min-height:0; margin-bottom:0`). When no results match a search term, a contextual "No … match your search." message is shown instead of the default "No … yet." message.
 
 **Settings page boxes (`.setting-group` cards, rendered in a CSS grid):**
-1. Database Backup & Restore
-2. Export & Import
-3. Display Settings
-4. Memory Lane Backup
-5. Admin PIN Protection
-6. Pending Approvals (`#pendingList`)
-7. Portal Information — school details and version stamp
-8. **Disclaimer** — four-paragraph static notice stating the site is an independent alumni initiative, not the school's official website, with IP/ownership acknowledgment and a contact prompt for content concerns
+1. **Backup All & Restore All** — highlighted card (gold border); `backupAll()` produces `SAA_Full_Backup_<date>.json` with all six databases; `restoreAll()` / `doRestoreAll()` restores whichever keys are present and re-renders all affected views
+2. Database Backup & Restore — alumni (`backupData` / `restoreData`)
+3. Export & Import — alumni CSV/JSON
+4. Display Settings
+5. Faculty Backup & Restore — `backupFaculty()` / `restoreFaculty()` (also accessible from Faculty toolbar)
+6. Memory Lane Backup & Restore — `backupMemoryLane()` / `restoreMemoryLane()`; restore re-creates individual Firestore event docs
+7. Notices Backup & Restore — `backupNotices()` / `restoreNotices()`; single file covers both Announcements and Feedback
+8. Admin PIN Protection
+9. Pending Approvals (`#pendingList`)
+10. Portal Information — school details and version stamp
+11. **Disclaimer** — four-paragraph static notice stating the site is an independent alumni initiative, not the school's official website, with IP/ownership acknowledgment and a contact prompt for content concerns
 
 ### Data Layer
 
@@ -230,8 +233,10 @@ window._ecPhotos;    // base64[] of current event's photos — set by openEvent(
 - **Delete feedback** (from approved list) — `deleteFeedbackPin(idx)` → `pinThen`.
 - **Delete** alumni / faculty / event — `deleteStudentPin` / `deleteFacultyPin` / `deleteEventPin` → `pinThen`.
 - **Approve / Reject** any pending submission (alumni add, alumni edit, faculty add, faculty edit, event add, event edit, feedback add, feedback edit, self-registration) — all route through `pinThen`.
-- **Restore** alumni or faculty JSON backup — `pinThen(restoreData)` / `pinThen(restoreFaculty)`.
-- **Backup / Export** — `pinThen(backupData)`, `pinThen(backupFaculty)`, `pinThen(backupMemoryLane)`, `pinThen(backupSettings)`, `pinThen(exportCSV)`, `pinThen(exportFaculty)` — all download actions in Settings, Alumni, and Faculty toolbars.
+- **Backup All / Restore All** — `pinThen(backupAll)` / `pinThen(restoreAll)` — full snapshot of all six databases in one file.
+- **Individual backups** — `pinThen(backupData)`, `pinThen(backupFaculty)`, `pinThen(backupMemoryLane)`, `pinThen(backupNotices)`, `pinThen(backupSettings)` — available from Settings; alumni and faculty backups also accessible from their respective tab toolbars.
+- **Individual restores** — `pinThen(restoreData)`, `pinThen(restoreFaculty)`, `pinThen(restoreMemoryLane)`, `pinThen(restoreNotices)` — each overwrites only its own dataset. All backup functions also guard with `if(!_requireAdmin())` internally.
+- **Export** — `pinThen(exportCSV)`, `pinThen(exportFaculty)` — CSV downloads from Alumni and Faculty toolbars.
 - **Save display settings** — `pinThen(saveSettings)`.
 
 **Pending Approvals (Settings tab):** Nine queues shown in `#pendingList`:
@@ -343,7 +348,12 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `savePendingEditAlumni(p)` | Save pending alumni edits to localStorage + `portal/pending_alumni_edit` |
 | `savePendingEditFaculty(p)` | Save pending faculty edits to localStorage + `portal/pending_faculty_edit` |
 | `savePendingEditEvents(p)` | Save pending event edits to localStorage + `portal/pending_event_edit` |
-| `backupData()` / `restoreData()` | JSON backup/restore (both PIN-protected) |
+| `backupAll()` / `restoreAll()` / `doRestoreAll()` | Full-site backup/restore — all six databases in one file (PIN-protected) |
+| `backupData()` / `restoreData()` / `doRestore()` | Alumni + events + settings JSON backup/restore (PIN-protected) |
+| `backupFaculty()` / `restoreFaculty()` / `doRestoreFaculty()` | Faculty JSON backup/restore (PIN-protected) |
+| `backupMemoryLane()` / `restoreMemoryLane()` / `doRestoreMemoryLane()` | Memory Lane backup/restore; restore re-creates Firestore event docs (PIN-protected) |
+| `backupNotices()` / `restoreNotices()` / `doRestoreNotices()` | Announcements + Feedback backup/restore in one file (PIN-protected) |
+| `backupSettings()` | Settings JSON download (PIN-protected; no dedicated restore — settings are also covered by Backup All) |
 | `exportCSV()` | Download alumni as CSV (PIN-protected) |
 | `toast(msg)` | Show a brief notification |
 | `dl(name, content, type)` | Trigger a file download |
@@ -352,5 +362,4 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `compressImage(file, maxW, quality)` | Client-side canvas compress before storing photo as base64 (default 1200px, 0.72 quality); rejects the Promise with an error if the file is not a valid image (`img.onerror`) — caller in `saveEvent()` catches this and shows a toast |
 | `changeFont(d)` | Increment/decrement font size (range 10–24px, default 18); writes to `--fs` CSS custom property and localStorage |
 | `openLightbox(src)` | Open full-screen photo lightbox |
-| `backupFaculty()` | Download faculty JSON backup |
 | `escapeHtml(s)` | HTML-encode a value for safe DOM injection — encodes `&`, `<`, `>`, `"`, `'`; called on every user-supplied field rendered into tables, cards, and rosters |
