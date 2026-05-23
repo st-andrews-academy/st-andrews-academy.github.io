@@ -781,14 +781,14 @@ window.addEventListener('load', () => {
         <td><code>portal/faculty</code> → <code>{records:[…]}</code></td>
         <td><code>saa_faculty</code></td>
         <td><code>saveFacDB()</code></td>
-        <td>15 entries. Backed up/restored separately — NOT included in the main alumni backup. Each record includes <code>Email</code> and <code>Cellphone</code> fields (admin-only — stored but never rendered in the dashboard table).</td>
+        <td>15 entries. Backed up/restored via <code>backupFaculty()</code> / <code>restoreFaculty()</code> (Settings card or Faculty toolbar) — also included in the <strong>Backup All</strong> snapshot. Each record includes <code>Email</code> and <code>Cellphone</code> fields (admin-only — stored but never rendered in the dashboard table).</td>
       </tr>
       <tr>
         <td>Memory Lane events</td>
         <td><code>events/{evId}</code> — one doc per event</td>
         <td><code>saa_events</code></td>
         <td>Individual <code>fstore.collection('events').doc(evId).set(ev)</code> on create; <code>.delete()</code> on remove. <code>saveEvents()</code> only writes to localStorage.</td>
-        <td>Event docs carry an <code>_id</code> field matching their Firestore doc ID (<code>Date.now().toString()</code>). Photos stored as base64 inside the doc.</td>
+        <td>Event docs carry an <code>_id</code> field matching their Firestore doc ID (<code>Date.now().toString()</code>). Photos stored as base64 inside the doc. Backed up/restored via <code>backupMemoryLane()</code> / <code>restoreMemoryLane()</code> (Settings); restore re-creates individual Firestore docs. Also included in <strong>Backup All</strong>.</td>
       </tr>
       <tr>
         <td>Admin PIN</td>
@@ -851,14 +851,14 @@ window.addEventListener('load', () => {
         <td><code>portal/announcements</code> → <code>{records:[…]}</code></td>
         <td><code>saa_announcements</code></td>
         <td><code>saveAnnouncements()</code></td>
-        <td>Admin-only add/edit/delete (all PIN-protected). Displayed latest-first in the <strong>top panel</strong> of the Notices tab (≈ 2/3 of viewport height). Live search via <code>#annSearch</code> filters by title or body. No pending queue — written directly by admin.</td>
+        <td>Admin-only add/edit/delete (all PIN-protected). Displayed latest-first in the <strong>top panel</strong> of the Notices tab (≈ 2/3 of viewport height). Live search via <code>#annSearch</code> filters by title or body. No pending queue — written directly by admin. Backed up/restored together with Feedback via <code>backupNotices()</code> / <code>restoreNotices()</code>; also included in <strong>Backup All</strong>.</td>
       </tr>
       <tr>
         <td>Approved feedback</td>
         <td><code>portal/feedback</code> → <code>{records:[…]}</code></td>
         <td><code>saa_feedback</code></td>
         <td><code>saveFeedbackDB()</code></td>
-        <td>Approved user feedback shown latest-first in the <strong>bottom panel</strong> of the Notices tab (≈ 1/3 of viewport height). Live search via <code>#fbSearch</code> filters by name or message. Delete is PIN-protected.</td>
+        <td>Approved user feedback shown latest-first in the <strong>bottom panel</strong> of the Notices tab (≈ 1/3 of viewport height). Live search via <code>#fbSearch</code> filters by name or message. Delete is PIN-protected. Backed up/restored together with Announcements via <code>backupNotices()</code> / <code>restoreNotices()</code>; also included in <strong>Backup All</strong>.</td>
       </tr>
       <tr>
         <td>Pending feedback adds</td>
@@ -936,10 +936,11 @@ window.addEventListener('load', () => {
         <div class="comp-row"><span class="comp-icon">✅</span><span>Approve or Reject self-registration (Register button)</span></div>
         <div class="comp-row"><span class="comp-icon">📢</span><span>Add / Edit / Delete Announcements (Notices tab — written directly, no pending queue)</span></div>
         <div class="comp-row"><span class="comp-icon">🗑️</span><span>Delete Alumni / Faculty / Event / Feedback</span></div>
-        <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Alumni JSON backup — overwrites alumni, events, settings (not faculty)</span></div>
-        <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Faculty JSON backup — overwrites faculty records only</span></div>
+        <div class="comp-row"><span class="comp-icon">🗃️</span><span>Backup Everything — single <code>SAA_Full_Backup_&lt;date&gt;.json</code> containing alumni, faculty, events, announcements, feedback, and settings</span></div>
+        <div class="comp-row"><span class="comp-icon">♻️</span><span>Restore Everything — restores all databases from a Full Backup file</span></div>
+        <div class="comp-row"><span class="comp-icon">💾</span><span>Individual backups — Alumni (<code>backupData</code>), Faculty (<code>backupFaculty</code>), Memory Lane (<code>backupMemoryLane</code>), Notices (<code>backupNotices</code>), Settings (<code>backupSettings</code>)</span></div>
+        <div class="comp-row"><span class="comp-icon">♻️</span><span>Individual restores — Alumni (<code>restoreData</code>), Faculty (<code>restoreFaculty</code>), Memory Lane (<code>restoreMemoryLane</code>), Notices (<code>restoreNotices</code>) — each overwrites only its own dataset</span></div>
         <div class="comp-row"><span class="comp-icon">📥</span><span>Export alumni or faculty to CSV / Excel</span></div>
-        <div class="comp-row"><span class="comp-icon">💾</span><span>Download alumni, faculty, Memory Lane, or settings JSON backups</span></div>
         <div class="comp-row"><span class="comp-icon">💾</span><span>Save display settings (font size)</span></div>
         <div class="comp-row"><span class="comp-icon">🔑</span><span>Change Admin PIN</span></div>
       </div>
@@ -950,7 +951,7 @@ window.addEventListener('load', () => {
   <div style="margin-top:14px;padding:12px 16px;background:#e8f0fe;border-left:4px solid #4a80d4;border-radius:8px;font-size:0.82rem;color:#1a3a8a;line-height:1.6;">
     <strong>How the PIN works:</strong> The PIN is stored in <code>saa_admin_pin</code> in localStorage and synced to <code>portal/config</code> in Firestore. On startup, the Firestore PIN overwrites the local one. Falls back to default <code>[encoded default]</code> if absent in both. When a PIN-protected action is triggered, a modal appears asking for the PIN. On success, the action proceeds and is written to both Firestore and localStorage.<br><br>
     <strong>Pending queue flow:</strong> Add forms (alumni, faculty, event, feedback) and Edit forms all write to pending queues — 9 queues total: <code>portal/pending_alumni_registration</code> (self-reg), <code>portal/pending_alumni_add</code>, <code>portal/pending_alumni_edit</code>, <code>portal/pending_faculty_add</code>, <code>portal/pending_faculty_edit</code>, <code>portal/pending_event_add</code>, <code>portal/pending_event_edit</code>, <code>portal/pending_feedback_add</code>, and <code>portal/pending_feedback_edit</code>. Announcements bypass the pending queue — admin writes them directly (Notices tab, top panel). The Settings tab shows all nine queues with an aggregate badge count. Admin approves (PIN) → record moves to/updates the live database. Admin rejects (PIN) → record is discarded.<br><br>
-    <strong>Backup &amp; Export:</strong> All backup downloads (alumni, faculty, Memory Lane, settings JSON) and CSV exports now require the admin PIN. Restoring is also PIN-protected because it overwrites stored data. Alumni restore (<code>restoreData()</code>) and Faculty restore (<code>restoreFaculty()</code>) are independent — each only overwrites its own dataset.
+    <strong>Backup &amp; Export:</strong> Every backup download and restore is PIN-protected at two levels — the button uses <code>pinThen()</code> and the function opens with <code>if(!_requireAdmin()) return</code>. Six backup scopes are available from the Settings page: <strong>Backup Everything</strong> (all six databases in one file — the recommended full snapshot), plus individual backups for Alumni, Faculty, Memory Lane, Notices (Announcements + Feedback combined), and Settings. Each individual restore only overwrites its own dataset. <strong>Restore Everything</strong> restores whichever keys are present in the file and re-renders all affected views. Memory Lane restore also re-creates individual Firestore event documents to keep Firestore in sync.
   </div>
 </div>
 
@@ -1132,7 +1133,7 @@ window.addEventListener('load', () => {
 </div>
 
 
-<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v8.5 &nbsp;·&nbsp; May 2026</p>
+<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v8.6 &nbsp;·&nbsp; May 2026</p>
 
 </body>
 </html>
