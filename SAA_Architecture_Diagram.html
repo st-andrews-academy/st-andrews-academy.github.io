@@ -1087,7 +1087,52 @@ window.addEventListener('load', () => {
   </div>
 </div>
 
-<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v8.4 &nbsp;·&nbsp; May 2026</p>
+<!-- ══════════════════════════════════════════════
+     SECURITY
+     ══════════════════════════════════════════════ -->
+<div class="sequence" style="margin-top:24px;">
+  <h2>Security Hardening — Applied Mitigations</h2>
+  <p style="font-size:0.83rem;color:#5a7080;margin-bottom:18px;margin-top:6px;">The following security controls are baked into <code>index.html</code> as of v1.2 (May 2026).</p>
+
+  <div style="display:flex;gap:20px;flex-wrap:wrap;">
+
+    <div style="flex:1;min-width:280px;">
+      <div style="background:#e8f0fe;border:2px solid #4a80d4;border-radius:12px;padding:18px 20px;">
+        <h3 style="font-size:0.82rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#1a3a8a;margin-bottom:14px;">Content Security Policy (CSP)</h3>
+        <div class="comp-row"><span class="comp-icon">🔒</span><span>A <code>Content-Security-Policy</code> meta tag in <code>&lt;head&gt;</code> restricts what the browser is allowed to load.</span></div>
+        <div class="comp-row"><span class="comp-icon">📜</span><span><strong>Scripts:</strong> only from <code>'self'</code>, <code>'unsafe-inline'</code> (required by the inline <code>&lt;script&gt;</code> block), and <code>gstatic.com</code> (Firebase SDK).</span></div>
+        <div class="comp-row"><span class="comp-icon">🌐</span><span><strong>Connections:</strong> only to <code>*.googleapis.com</code>, <code>*.google.com</code>, <code>*.firebaseio.com</code>, and <code>wss://*.firebaseio.com</code>.</span></div>
+        <div class="comp-row"><span class="comp-icon">🖼️</span><span><strong>Images:</strong> <code>data:</code> (base64 embedded portraits) and <code>blob:</code> (photo preview object URLs) — no remote image hotlinking.</span></div>
+        <div class="comp-row"><span class="comp-icon">🚫</span><span><code>frame-src 'none'</code> and <code>object-src 'none'</code> block clickjacking and plugin-based attacks.</span></div>
+        <div class="comp-row"><span class="comp-icon">✅</span><span>Blocks external script injection, data exfiltration to unknown hosts, and most reflected-XSS escalation paths — even if an attacker finds a way to inject a payload.</span></div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:280px;">
+      <div style="background:#f0fdf4;border:2px solid #43a047;border-radius:12px;padding:18px 20px;">
+        <h3 style="font-size:0.82rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#1b5e20;margin-bottom:14px;">XSS Escaping — escapeHtml()</h3>
+        <div class="comp-row"><span class="comp-icon">🛡️</span><span>A shared <code>escapeHtml(s)</code> helper HTML-encodes every user-supplied value before it is injected into the DOM via <code>innerHTML</code>.</span></div>
+        <div class="comp-row"><span class="comp-icon">🔤</span><span>Encodes: <code>&amp;</code> → <code>&amp;amp;</code>, <code>&lt;</code> → <code>&amp;lt;</code>, <code>&gt;</code> → <code>&amp;gt;</code>, <code>"</code> → <code>&amp;quot;</code>, <code>'</code> → <code>&amp;#39;</code>.</span></div>
+        <div class="comp-row"><span class="comp-icon">📋</span><span><strong>Applied to:</strong> Alumni DB table (all name/code/profession fields), Faculty table, Graduation class roster, Overview stats card (top surnames and first names), Memory Lane event cards and detail view, Faculty adviser and reunion lists.</span></div>
+        <div class="comp-row"><span class="comp-icon">🖼️</span><span>Event detail photo lightbox uses <code>window._ecPhotos[i]</code> (an array reference) instead of embedding the raw base64 data URI in an <code>onclick</code> attribute — prevents attribute-injection attacks via crafted photo filenames.</span></div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:280px;">
+      <div style="background:#fff8e1;border:2px solid #f0b429;border-radius:12px;padding:18px 20px;">
+        <h3 style="font-size:0.82rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#7a4e00;margin-bottom:14px;">PIN Brute-Force Lockout</h3>
+        <div class="comp-row"><span class="comp-icon">🔐</span><span>5 consecutive wrong PIN attempts (in either the main PIN modal or the Change-PIN modal) trigger a <strong>60-second lockout</strong>.</span></div>
+        <div class="comp-row"><span class="comp-icon">🔄</span><span>Lockout state (<code>_pinFailCount</code>, <code>_pinLockUntil</code>) is written to <code>sessionStorage</code> via <code>_saveLockout()</code> after every failed attempt — so a page refresh does not reset the counter within the same browser session.</span></div>
+        <div class="comp-row"><span class="comp-icon">⏱️</span><span>During lockout, the error message reads <em>"Too many attempts. Try again in Xs."</em> Further attempts are blocked until <code>Date.now() &gt; _pinLockUntil</code>.</span></div>
+        <div class="comp-row"><span class="comp-icon">🔑</span><span>PIN itself is SHA-256 hashed (via <code>verifyPin()</code>) before comparison — the raw PIN value is never compared in plaintext. The default PIN is obfuscated in source with <code>atob()</code>.</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<p class="footer">St. Andrews Academy Alumni Portal &nbsp;·&nbsp; Batch 1986 &nbsp;·&nbsp; Architecture v8.5 &nbsp;·&nbsp; May 2026</p>
 
 </body>
 </html>

@@ -3,7 +3,7 @@
 
 **School:** St. Andrew's Academy, Candaba, Pampanga, Philippines  
 **Established:** 1946  
-**Portal Version:** 1.1 — May 2026  
+**Portal Version:** 1.2 — May 2026  
 **Live URL:** https://st-andrews-academy.github.io
 
 ---
@@ -31,6 +31,8 @@
 - 🖼️ **Photo Lightbox** — click any photo to enlarge
 - 📱 **Mobile-friendly** — responsive design for phones and tablets
 - 🔠 **Font size controls** (A+ / A−) — size 10 to 24, default 18
+- 🛡️ **XSS Protection** — all dynamic HTML output is HTML-escaped via `escapeHtml()` before rendering
+- 🔒 **Content Security Policy** — CSP meta tag restricts script/connect origins to Firebase and Google Fonts
 
 ---
 
@@ -52,6 +54,8 @@
 Default PIN is pre-set. Change it anytime via **Settings → Change Admin PIN**.  
 Protected actions: Approve/Reject pending submissions, Delete, Restore, Backup/Export, Change PIN.  
 Adding and editing records is open to anyone — submissions go to a pending queue for admin review.
+
+**Brute-force lockout:** 5 consecutive wrong PIN attempts triggers a 60-second lockout. The lockout state is stored in `sessionStorage` so it survives a page refresh within the same browser session.
 
 ---
 

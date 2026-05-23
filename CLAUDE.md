@@ -53,6 +53,10 @@ rm -rf package.json package-lock.json node_modules my_test.mjs  # clean up
 
 All HTML, CSS (in `<style>`), and JavaScript (in `<script>`) are in `index.html`. Images (class portraits, historical photos) are embedded as base64 data URIs, which accounts for the large file size.
 
+A `Content-Security-Policy` meta tag in `<head>` restricts resource origins: scripts only from `'self'`, `'unsafe-inline'`, and `gstatic.com`; fonts from `fonts.gstatic.com`; connections to `*.googleapis.com`, `*.google.com`, and `*.firebaseio.com`; images from `data:` and `blob:`; no `<frame>` or `<object>`. This blocks most injected-script and data-exfiltration attacks without touching Firebase or Google Fonts.
+
+All dynamic HTML rendering uses `escapeHtml(s)` (defined near the top of the `<script>`) to prevent XSS. It HTML-encodes `&`, `<`, `>`, `"`, and `'`. Applied to every field rendered into the Alumni DB table, Faculty table, Graduation class roster, Overview stats, Memory Lane event cards, event detail view, and Faculty adviser/reunion lists.
+
 ### Navigation & Tabs
 
 `showPage(id, btn)` controls which of the 8 tabs is visible: Overview, History, Graduation, Alumni DB, Faculty, Memory Lane, Notices, Settings. Each tab has an `init*()` function called on `DOMContentLoaded`.
@@ -196,6 +200,12 @@ let announcements;   // Announcements array (Notices tab)
 let feedbackDB;      // Approved feedback array (Notices tab)
 let editAnnouncementIdx; // -1 = add mode, ≥0 = edit mode for announcement modal
 let editFeedbackIdx;     // -1 = add mode, ≥0 = edit mode for feedback modal
+// PIN security state — initialised from sessionStorage so lockout survives page refresh
+let _pinFailCount;   // Failed PIN attempts since last success (persisted in sessionStorage)
+let _pinLockUntil;   // timestamp (ms) when lockout expires; 0 = not locked (persisted in sessionStorage)
+let _adminSessionExpiry; // timestamp (ms) when the current admin session expires (5-min window)
+window._ecPhotos;    // base64[] of current event's photos — set by openEvent() so lightbox onclick
+                     // references the array by index instead of embedding raw data URIs in HTML
 ```
 
 ### PIN Authentication Pattern
@@ -242,6 +252,8 @@ let editFeedbackIdx;     // -1 = add mode, ≥0 = edit mode for feedback modal
 **Contact details privacy:** The Add/Edit modals for alumni and faculty include `Email` and `Cellphone` fields. These are stored in the record (Firestore + localStorage) and visible when editing, but are **never rendered** in the Alumni DB or Faculty dashboard tables. A yellow `.privacy-note` banner in each form reads: "Contact details (email & cellphone) and other personal information are for information purpose only, and shall not be used nor shared to the public. Please do not fill if you are not comfortable sharing it in this portal."
 
 **Change Admin PIN** uses its own modal (`openChgPin` / `doChgPin`) that requires entering the current PIN directly — it does not use `pinThen()`.
+
+**Brute-force lockout:** Both `pinThen()` (via `confirmPin()`) and `doChgPin()` enforce a 5-attempt lockout. After 5 consecutive wrong PINs, `_pinLockUntil` is set to `Date.now()+60000` and `_pinFailCount` resets to 0. Further attempts are blocked until the timestamp expires. `_pinFailCount` and `_pinLockUntil` are initialised from `sessionStorage` on page load (via `_saveLockout()`) so the lockout survives a page refresh within the same browser session.
 
 ### Modal Pattern
 
@@ -337,7 +349,8 @@ The gallery is fully responsive — CSS Grid with `auto-fill` and `minmax(180px,
 | `dl(name, content, type)` | Trigger a file download |
 | `genCode(batch, sec)` | Auto-generate student code |
 | `loadFromFirestore()` | Fetch all data (incl. all 9 pending queues, 15 Firestore docs total) from Firestore on startup; falls back to localStorage |
-| `compressImage(file, maxW, quality)` | Client-side canvas compress before storing photo as base64 (default 1200px, 0.72 quality) |
+| `compressImage(file, maxW, quality)` | Client-side canvas compress before storing photo as base64 (default 1200px, 0.72 quality); rejects the Promise with an error if the file is not a valid image (`img.onerror`) — caller in `saveEvent()` catches this and shows a toast |
 | `changeFont(d)` | Increment/decrement font size (range 10–24px, default 18); writes to `--fs` CSS custom property and localStorage |
 | `openLightbox(src)` | Open full-screen photo lightbox |
 | `backupFaculty()` | Download faculty JSON backup |
+| `escapeHtml(s)` | HTML-encode a value for safe DOM injection — encodes `&`, `<`, `>`, `"`, `'`; called on every user-supplied field rendered into tables, cards, and rosters |
